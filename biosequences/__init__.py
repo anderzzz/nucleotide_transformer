@@ -5,6 +5,7 @@ from biosequences.src.io.api import (
     NucleotideSequenceDataset
 )
 
-#from src.transformers.api import (
-#
-#)
+from biosequences.src.transformers.api import (
+    BertTextSentimentClassifier,
+    create_bert_objs
+)
