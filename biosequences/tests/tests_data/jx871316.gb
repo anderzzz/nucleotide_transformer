@@ -1,0 +1,67 @@
+LOCUS       JX871316                1412 bp    DNA     linear   ENV 06-MAY-2013
+DEFINITION  Uncultured bacterium clone 17.107-3 16S ribosomal RNA gene, partial
+            sequence.
+ACCESSION   JX871316
+VERSION     JX871316.1
+KEYWORDS    ENV.
+SOURCE      uncultured bacterium
+  ORGANISM  uncultured bacterium
+            Bacteria; environmental samples.
+REFERENCE   1  (bases 1 to 1412)
+  AUTHORS   Hyman,R.W., Fukushima,M., Jiang,H., Fung,E., Rand,L., Johnson,B.,
+            Vo,K.C., Caughey,A.B., Hilton,J., Davis,R.W. and Giudice,L.C.
+  TITLE     Diversity of the vaginal microbiome correlates with preterm birth:
+            a pilot study
+  JOURNAL   Unpublished
+REFERENCE   2  (bases 1 to 1412)
+  AUTHORS   Hyman,R.W., Fukushima,M. and Fung,E.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (26-SEP-2012) Stanford Genome Technology Center, Stanford
+            University, 855 S. California Ave, Palo Alto, CA 94304, USA
+COMMENT     Sequences were screened for chimeras by the submitter using
+            Bellerophon 3.
+            
+            ##Assembly-Data-START##
+            Assembly Method       :: phrap v. 0.990319
+            Sequencing Technology :: Sanger dideoxy sequencing
+            ##Assembly-Data-END##
+FEATURES             Location/Qualifiers
+     source          1..1412
+                     /organism="uncultured bacterium"
+                     /mol_type="genomic DNA"
+                     /isolation_source="vagina"
+                     /host="Homo sapiens"
+                     /db_xref="taxon:77133"
+                     /clone="17.107-3"
+                     /environmental_sample
+                     /PCR_primers="fwd_name: 8f, fwd_seq: agagtttgatcmtggctcag,
+                     rev_name: 1492r, rev_seq: tacggytaccttgttacgactt"
+     rRNA            <1..>1412
+                     /product="16S ribosomal RNA"
+ORIGIN      
+        1 aggacgaacg ctggcggcgt gcttaacaca tgcaagtcga acgagaggac atgaaaagct
+       61 tgctttttat gaaatctagt ggcaaacggg tgagtaacac gtaaacaacc tgccttcaag
+      121 atggggacaa cagacggaaa cgactgctaa taccgaatac gatccgaaag tcgcatgaca
+      181 ttcggatgaa agggtggcct atcgaagaag ctatcgcttg aagaggggtt tgcgtccgat
+      241 taggtagttg gtgaggtaac ggcccaccaa gccgacgatc ggtagccggt ctgagaggat
+      301 gaacggccac actggaactg agacacggtc cagactccta cgggaggcag cagtggggaa
+      361 tcttccgcaa tggacgaaag tctgacggag caacgccgcg tgagtgaaga cggccttcgg
+      421 gttgtaaagc tctgtgattc gggacgaaag gccatatgtg aataatatat ggaaatgacg
+      481 gtaccgaaaa agcaagccac ggctaactac gtgccagcag ccgcggtaat acgtaggtgg
+      541 caagcgttgt ccggaattat tgggcgtaaa gcgcgcgcag gcggtctctt aagtccatct
+      601 tagaagtgcg gggcttaacc ccgtgagggg atggaaactg ggagactgga gtatcggaga
+      661 ggaaagtgga attcctagtg tagcggtgaa atgcgtagat attaggaaga acaccggtgg
+      721 cgaaggcgac tttctggacg aaaactgacg ctgaggcgcg aaagcgtggg gagcaaacag
+      781 gattagatac cctggtagtc cacgccgtaa acgatggata ctaggtgtag gaggtatcga
+      841 ccccttctgt gccggagtta acgcaataag tatcccgcct gggaagtacg atcgcaagat
+      901 taaaactcaa aggaattgac gggggcccgc acaagcggtg gagtatgtgg tttaattcga
+      961 cgcaacgcga agaaccttac caagtcttga cattgatcgc cattccaaga gattggaagt
+     1021 tctccttcgg gagacgagaa aacaggtggt gcacggctgt cgtcagctcg tgtcgtgaga
+     1081 tgttgggtta agtcccgcaa cgagcgcaac ccctatcttt tgttgccagc acgtagaggt
+     1141 gggaactcag aagagaccgc cgcagacaat gcggaggaag gtggggatga cgtcaagtca
+     1201 tcatgccccc tatgacctgg gctacacacg tgctacaatg gacggtacaa cgagaagcga
+     1261 ccctgtgaag gcaagcggat ctctgaaagc cgttctcagt tcggattgca ggctgcaact
+     1321 cgcctgcatg aagctggaat cgctagtaat cgcaaatcag cacgttgcgg tgaatacgtt
+     1381 cccgggcctt gtacacaccg cccgtcacac ca
+//
+

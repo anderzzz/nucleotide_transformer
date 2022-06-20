@@ -10,18 +10,22 @@ class BertTextSentimentClassifier(nn.Module):
     '''
     def __init__(self,
                  config=None,
-                 pretrained='bert-base-uncased',
+                 pretrained=None,
                  n_class_labels=1
                  ):
 
         super(BertTextSentimentClassifier, self).__init__()
 
+        if config is None and pretrained is None:
+            raise ValueError('Both `config` and `pretrained` are `None`. One must be non-None.')
+
         self.bert = None
         if pretrained is None:
-            self.bert = BertModel(config=config)
+            if not isinstance(config, BertConfig):
+                raise TypeError('BERT configuration not of required type {}'.format(type(BertConfig)))
+            else:
+                self.bert = BertModel(config=config)
         else:
-            if not config is None:
-                raise RuntimeWarning('Bert configuration ignored when pretrained parameter provided')
             self.bert = BertModel.from_pretrained(pretrained)
 
         classifier_dropout = (
@@ -34,10 +38,7 @@ class BertTextSentimentClassifier(nn.Module):
 
     def forward(self, text_tokens):
         output = self.bert(**text_tokens)
-        pooled_output = output.pooler_output
-        pooled_output = self.dropout(pooled_output)
-        class_pred = self.classifier(pooled_output)
-
+        class_pred = self.classifier(self.dropout(output.pooler_output))
         return class_pred
 
 def create_bert_objs(config=None,
