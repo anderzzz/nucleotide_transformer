@@ -12,7 +12,7 @@ class DNABertEncoder(nn.Module):
     '''
     def __init__(self,
                  tokenizer,
-                 config=None
+                 config
                  ):
         super(DNABertEncoder, self).__init__()
 
@@ -20,4 +20,9 @@ class DNABertEncoder(nn.Module):
                 (not isinstance(tokenizer, DNABertTokenizerFast)):
             raise TypeError('The tokenizer of invalid type')
 
-        pass
+        if not isinstance(config, BertConfig):
+            raise TypeError('The configuration of invalid type')
+
+        self.bert = BertModel(config=config)
+
+

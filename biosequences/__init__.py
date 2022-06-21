@@ -16,7 +16,7 @@ from biosequences.src.transformers.api import (
 )
 
 from biosequences.src.utils.nucleotide_vocab import (
-    DNANucleotideAlphabet,
-    RNANucleotideAlphabet,
+    dna_nucleotide_alphabet,
+    rna_nucleotide_alphabet,
     NucleotideVocabCreator,
 )

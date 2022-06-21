@@ -2,7 +2,7 @@
 
 '''
 from dataclasses import dataclass
-from itertools import permutations
+from itertools import product, chain
 
 @dataclass
 class NucleotideAlphabet:
@@ -13,11 +13,11 @@ class NucleotideAlphabet:
     def is_standard_letter_(self, x):
         return x in self.letters
 
-DNANucleotideAlphabet = NucleotideAlphabet(letters={'A','T', 'C', 'G'},
+dna_nucleotide_alphabet = NucleotideAlphabet(letters={'A','T', 'C', 'G'},
                                            letters_extended=set(),
                                            missing='X'
                                            )
-RNANucleotideAlphabet = NucleotideAlphabet(letters={'A','U', 'C', 'G'},
+rna_nucleotide_alphabet = NucleotideAlphabet(letters={'A','U', 'C', 'G'},
                                            letters_extended=set(),
                                            missing='X'
                                            )
@@ -27,8 +27,10 @@ class NucleotideVocabCreator(object):
 
     '''
     def __init__(self, alphabet,
+                 do_lower_case=True,
                  extended_letters=False,
-                 missing=False):
+                 missing=False,
+                 unk_token='[UNK]', sep_token='[SEP]', pad_token='[PAD]', cls_token='[CLS]', mask_token='[MASK]'):
 
         self.vocab = None
         self.character_set = alphabet.letters
@@ -36,6 +38,10 @@ class NucleotideVocabCreator(object):
             self.character_set += alphabet.letters_extended
         if missing:
             self.character_set += alphabet.missing
+        if do_lower_case:
+            self.character_set = [token.lower() for token in self.character_set]
+
+        self.special_tokens = [token for token in [unk_token, sep_token, pad_token, cls_token, mask_token] if not token is None]
 
     def print(self):
         print_str = ''
@@ -44,7 +50,8 @@ class NucleotideVocabCreator(object):
         return print_str
 
     def generate(self, word_length):
-        self.vocab = permutations(self.character_set, word_length)
+        self.vocab = product(self.character_set, repeat=word_length)
+        self.vocab = chain(iter(self.special_tokens), self.vocab)
         return self
 
     def save(self, fout):
