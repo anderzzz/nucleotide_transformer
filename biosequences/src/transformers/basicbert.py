@@ -41,28 +41,3 @@ class BertTextSentimentClassifier(nn.Module):
         class_pred = self.classifier(self.dropout(output.pooler_output))
         return class_pred
 
-def create_bert_objs(config=None,
-                     pretrained='bert-base-uncased'):
-    '''Convenience function to create the bert model and associated tokenizer
-
-    '''
-    model = BertTextSentimentClassifier(config=config,
-                                        pretrained=pretrained)
-    if pretrained is None:
-        pass
-    else:
-        tokenizer = BertTokenizer.from_pretrained(pretrained)
-
-    return model, tokenizer
-
-#config = BertConfig()
-#model = BertModel.from_pretrained('bert-base-uncased')
-#
-#tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-#
-#dummy = 'Well that was quite remarkable, quite remarkable indeed. Now tell me, dude, what is next?'
-#inputs = tokenizer(dummy, return_tensors='pt')
-#
-#outputs = model(**inputs)
-#
-#print (outputs)

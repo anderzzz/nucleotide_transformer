@@ -2,6 +2,9 @@
 
 '''
 from biosequences.src.transformers.basicbert import (
-    BertTextSentimentClassifier,
-    create_bert_objs
+    BertTextSentimentClassifier
+)
+
+from biosequences.src.transformers.dnabert import (
+    DNABertEncoder
 )
