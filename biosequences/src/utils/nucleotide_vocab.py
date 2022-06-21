@@ -50,7 +50,7 @@ class NucleotideVocabCreator(object):
         return print_str
 
     def generate(self, word_length):
-        self.vocab = product(self.character_set, repeat=word_length)
+        self.vocab = product(sorted(self.character_set), repeat=word_length)
         self.vocab = chain(iter(self.special_tokens), self.vocab)
         return self
 
