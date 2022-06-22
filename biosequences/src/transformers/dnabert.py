@@ -6,23 +6,19 @@ from transformers import BertModel, BertConfig
 
 from biosequences import DNABertTokenizer, DNABertTokenizerFast
 
-class DNABertEncoder(nn.Module):
+class DNABertEncoder(BertModel):
     '''Bla bla
 
     '''
     def __init__(self,
-                 tokenizer,
-                 config
+                 config,
+                 add_pooling_layer=True
                  ):
-        super(DNABertEncoder, self).__init__()
+        super(DNABertEncoder, self).__init__(config=config,
+                                             add_pooling_layer=add_pooling_layer)
 
-        if (not isinstance(tokenizer, DNABertTokenizer)) or \
-                (not isinstance(tokenizer, DNABertTokenizerFast)):
-            raise TypeError('The tokenizer of invalid type')
-
-        if not isinstance(config, BertConfig):
-            raise TypeError('The configuration of invalid type')
-
-        self.bert = BertModel(config=config)
-
+    def forward(self, *args, **kwargs):
+        bert_code = super().forward(*args, **kwargs)
+        print (bert_code)
+        raise RuntimeError('Charmed')
 
