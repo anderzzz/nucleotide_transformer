@@ -41,13 +41,13 @@ class DNABertTokenizer(BertTokenizer):
         self.stride = stride
         self.word_length = word_length
 
-    def __call__(self, seq):
+    def __call__(self, seq, return_tensors=None):
         if isinstance(seq, (list,tuple)):
             text = [_make_phrase_from_(s, self.stride, self.word_length) for s in seq]
         else:
             text = _make_phrase_from_(seq, self.stride, self.word_length)
 
-        return super().__call__(text)
+        return super().__call__(text, return_tensors=return_tensors)
 
 
 class DNABertTokenizerFast(BertTokenizerFast):

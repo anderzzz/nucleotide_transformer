@@ -1,6 +1,8 @@
 '''Bla bla
 
 '''
+import torch
+
 from biosequences import dna_nucleotide_alphabet, NucleotideVocabCreator
 from biosequences import DNABertTokenizer, DNABertTokenizerFast
 
@@ -16,6 +18,14 @@ def test_tokenize_str():
     tokenizer = DNABertTokenizer('./tmp_test.txt', word_length=3, stride=1, do_lower_case=True)
     out = tokenizer(SEQ_STR)
     assert out.input_ids == IDS_SEQ_STR
+
+def test_tokenize_str_ptreturn():
+    dna_vocab = NucleotideVocabCreator(dna_nucleotide_alphabet, do_lower_case=True).generate(3)
+    with open('./tmp_test.txt', 'w') as fout:
+        dna_vocab.save(fout)
+    tokenizer = DNABertTokenizer('./tmp_test.txt', word_length=3, stride=1, do_lower_case=True)
+    out = tokenizer(SEQ_STR, return_tensors='pt')
+    assert torch.equal(out.input_ids, torch.tensor(IDS_SEQ_STR).reshape(1,-1))
 
 def test_tokenize_batch():
     dna_vocab = NucleotideVocabCreator(dna_nucleotide_alphabet, do_lower_case=True).generate(3)
@@ -45,9 +55,9 @@ def test_tokenize_fast_batch():
     out = tokenizer(SEQ_BATCH)
     assert out.input_ids == IDS_SEQ_BATCH
 
-
 if __name__ == '__main__':
     test_tokenize_str()
+    test_tokenize_str_ptreturn()
     test_tokenize_batch()
     test_tokenize_fast_str()
     test_tokenize_fast_batch()
