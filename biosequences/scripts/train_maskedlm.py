@@ -1,8 +1,9 @@
 '''Bla bla
 
 '''
-from biosequences import NucleotideSequenceDataset
-from biosequences import DNABertTokenizer, NucleotideVocabCreator, dna_nucleotide_alphabet
+from biosequences.io import NucleotideSequencePhrasesDataset
+from biosequences.tokenizers import DNABertTokenizer
+from biosequences.utils import NucleotideVocabCreator, dna_nucleotide_alphabet
 
 from transformers import BertForMaskedLM
 from transformers import DataCollatorForLanguageModeling
@@ -16,7 +17,7 @@ def main(gb_data_folder=None,
     # Construct Dataset
     if gb_data_folder is None:
         raise ValueError('The folder with Genbank data files must be provided in `gb_data_folder`')
-    dataset = NucleotideSequenceDataset(gb_data_folder)
+    dataset = NucleotideSequencePhrasesDataset(gb_data_folder)
 
     #
     # Construct the tokenizer

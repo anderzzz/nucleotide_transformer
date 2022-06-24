@@ -5,6 +5,8 @@ from pathlib import Path
 from torch.utils.data import Dataset
 from Bio import SeqIO
 
+from biosequences.utils import make_phrase_from_
+
 class NucleotideSequenceDataset(Dataset):
     '''Dataset of nucleotide sequences from collection of data in some standard format
 
@@ -99,4 +101,7 @@ class NucleotideSequencePhrasesDataset(Dataset):
         return self.rawdataset.__len__()
 
     def __getitem__(self, item):
-        dseq = self.rawdataset[item]
+        seq, id, name = self.rawdataset[item]
+        dseq_phrase = make_phrase_from_(seq=seq, stride=self.stride, word_length=self.word_length)
+
+        return dseq_phrase, id, name

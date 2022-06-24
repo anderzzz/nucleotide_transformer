@@ -4,7 +4,7 @@
 from Bio.SeqRecord import SeqRecord
 from torch.utils.data import DataLoader
 
-from biosequences.io import NucleotideSequenceDataset
+from biosequences.io import NucleotideSequenceDataset, NucleotideSequencePhrasesDataset
 
 TEST_DATA = './tests_data/'
 SEQ_ON_RECORD = 'AGGACGAACGCTGGCGGCGTGCTTAACACATGCAAGTCGAACGAGAGGACATGAAAAGCTTGCTTTTTATGAAATCTAGTGGCAAACGGGTGAGTAAC' + \
@@ -22,6 +22,7 @@ SEQ_ON_RECORD = 'AGGACGAACGCTGGCGGCGTGCTTAACACATGCAAGTCGAACGAGAGGACATGAAAAGCTTGC
                 'GAAGGTGGGGATGACGTCAAGTCATCATGCCCCCTATGACCTGGGCTACACACGTGCTACAATGGACGGTACAACGAGAAGCGACCCTGTGAAGGCAA' + \
                 'GCGGATCTCTGAAAGCCGTTCTCAGTTCGGATTGCAGGCTGCAACTCGCCTGCATGAAGCTGGAATCGCTAGTAATCGCAAATCAGCACGTTGCGGTG' + \
                 'AATACGTTCCCGGGCCTTGTACACACCGCCCGTCACACCA'
+SEQ_ON_RECORD_PHRASE_LEN = 4 * (len(SEQ_ON_RECORD) - 2) - 1
 
 
 def test_simple_read():
@@ -39,6 +40,18 @@ def test_full_record_read():
     assert isinstance(data[0], SeqRecord)
     assert data[0].seq.__str__() == SEQ_ON_RECORD
 
+def test_phrase_read():
+    data = NucleotideSequencePhrasesDataset(TEST_DATA, word_length=3, stride=1)
+    assert len(data) == 1
+
+    dloader = DataLoader(data)
+    for dd in dloader:
+        assert len(dd[0][0]) == SEQ_ON_RECORD_PHRASE_LEN
+        assert dd[0][0][-3:] == SEQ_ON_RECORD[-3:]
+        assert dd[0][0][:3] == SEQ_ON_RECORD[:3]
+
+
 if __name__ == '__main__':
     test_simple_read()
     test_full_record_read()
+    test_phrase_read()
