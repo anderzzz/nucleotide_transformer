@@ -1,17 +1,22 @@
 '''Bla bla
 
 '''
-def make_phrase_from_(seq, stride, word_length):
+class Phrasifier(object):
     '''Bla bla
 
     '''
-    if not isinstance(seq, str):
-        raise TypeError('Encountered sequence that is not string: {}'.format(seq))
+    def __init__(self, stride, word_length):
+        self.stride = stride
+        self.word_length = word_length
 
-    lower_ind = len(seq) - word_length + 1
-    if lower_ind < 1:
-        raise RuntimeError('Sequence too short: {}'.format(seq))
-    chunks = [seq[ind: ind + word_length] for ind in range(0, lower_ind, stride)]
-    phrase = ' '.join(chunks)
+    def __call__(self, seq):
+        if not isinstance(seq, str):
+            raise TypeError('Encountered sequence that is not string: {}'.format(seq))
 
-    return phrase
+        lower_ind = len(seq) - self.word_length + 1
+        if lower_ind < 1:
+            raise RuntimeError('Sequence too short: {}'.format(seq))
+        chunks = [seq[ind: ind + self.word_length] for ind in range(0, lower_ind, self.stride)]
+        phrase = ' '.join(chunks)
+
+        return phrase

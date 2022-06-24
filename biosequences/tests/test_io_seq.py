@@ -4,7 +4,8 @@
 from Bio.SeqRecord import SeqRecord
 from torch.utils.data import DataLoader
 
-from biosequences.io import NucleotideSequenceDataset, NucleotideSequencePhrasesDataset
+from biosequences.utils import Phrasifier
+from biosequences.io import NucleotideSequenceDataset, NucleotideSequenceProcessor
 
 TEST_DATA = './tests_data/'
 SEQ_ON_RECORD = 'AGGACGAACGCTGGCGGCGTGCTTAACACATGCAAGTCGAACGAGAGGACATGAAAAGCTTGCTTTTTATGAAATCTAGTGGCAAACGGGTGAGTAAC' + \
@@ -33,25 +34,23 @@ def test_simple_read():
     for dd in dloader:
         assert dd['seq'][0] == SEQ_ON_RECORD
 
-def test_full_record_read():
-    data = NucleotideSequenceDataset(TEST_DATA, output_record_filter_func='full_record')
-    assert len(data) == 1
-
-    assert isinstance(data[0]['record'], SeqRecord)
-    assert data[0]['record'].seq.__str__() == SEQ_ON_RECORD
-
 def test_phrase_read():
-    data = NucleotideSequencePhrasesDataset(TEST_DATA, word_length=3, stride=1)
+    phraser = Phrasifier(stride=1, word_length=3)
+    data = NucleotideSequenceDataset(TEST_DATA, phrasifier=phraser)
     assert len(data) == 1
 
     dloader = DataLoader(data)
     for dd in dloader:
-        assert len(dd['seq_phrase'][0]) == SEQ_ON_RECORD_PHRASE_LEN
-        assert dd['seq_phrase'][0][-3:] == SEQ_ON_RECORD[-3:]
-        assert dd['seq_phrase'][0][:3] == SEQ_ON_RECORD[:3]
+        assert len(dd['seq'][0]) == SEQ_ON_RECORD_PHRASE_LEN
+        assert dd['seq'][0][-3:] == SEQ_ON_RECORD[-3:]
+        assert dd['seq'][0][:3] == SEQ_ON_RECORD[:3]
 
+def test_convert_2json():
+    phraser = Phrasifier(stride=1, word_length=3)
+    converter = NucleotideSequenceProcessor(TEST_DATA, phrasifier=phraser)
+    converter.convert_to_('json', out_dir=TEST_DATA, out_file_suffix='json')
 
 if __name__ == '__main__':
     test_simple_read()
-    test_full_record_read()
     test_phrase_read()
+    test_convert_2json()

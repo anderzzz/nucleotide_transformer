@@ -2,7 +2,7 @@
 
 '''
 from transformers import BertTokenizer, BertTokenizerFast
-from biosequences.utils import make_phrase_from_
+from biosequences.utils import Phrasifier
 
 class DNABertTokenizer(BertTokenizer):
     '''Bla bla
@@ -24,14 +24,13 @@ class DNABertTokenizer(BertTokenizer):
             cls_token=cls_token,
             mask_token=mask_token
         )
-        self.stride = stride
-        self.word_length = word_length
+        self.phrasifier = Phrasifier(stride=stride, word_length=word_length)
 
     def __call__(self, seq, **kwargs):
         if isinstance(seq, (list,tuple)):
-            text = [make_phrase_from_(s, self.stride, self.word_length) for s in seq]
+            text = [self.phrasifier(s) for s in seq]
         else:
-            text = make_phrase_from_(seq, self.stride, self.word_length)
+            text = self.phrasifier(seq)
 
         return super().__call__(text, **kwargs)
 
@@ -57,13 +56,12 @@ class DNABertTokenizerFast(BertTokenizerFast):
             cls_token=cls_token,
             mask_token=mask_token
         )
-        self.stride = stride
-        self.word_length = word_length
+        self.phrasifier = Phrasifier(stride=stride, word_length=word_length)
 
     def __call__(self, seq, **kwargs):
         if isinstance(seq, (list,tuple)):
-            text = [make_phrase_from_(s, self.stride, self.word_length) for s in seq]
+            text = [self.phrasifier(s) for s in seq]
         else:
-            text = make_phrase_from_(seq, self.stride, self.word_length)
+            text = self.phrasifier(seq)
 
         return super().__call__(text, **kwargs)

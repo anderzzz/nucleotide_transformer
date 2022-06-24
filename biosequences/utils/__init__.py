@@ -5,5 +5,5 @@ from biosequences.utils.nucleotide_vocab import (
 )
 
 from biosequences.utils.phrase_maker import (
-    make_phrase_from_
+    Phrasifier
 )
