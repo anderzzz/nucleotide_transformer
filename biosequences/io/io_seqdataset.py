@@ -41,7 +41,7 @@ class NucleotideSequenceDataset(Dataset):
         if output_record_filter_func == 'seq_with_id':
             self.filter_record_ = self._filter_record_seq_with_id
         elif output_record_filter_func == 'full_record':
-            self.filter_record_ = lambda x: x
+            self.filter_record_ = lambda x: {'record' : x}
         elif callable(output_record_filter_func):
             self.filter_record_ = output_record_filter_func
         else:
@@ -77,7 +77,7 @@ class NucleotideSequenceDataset(Dataset):
         return [record for record in SeqIO.parse(fp, format_name)]
 
     def _filter_record_seq_with_id(self, record):
-        return record.seq.__str__(), record.id, record.name
+        return {'seq' : record.seq.__str__(), 'seq_id' : record.id, 'seq_name' : record.name}
 
 
 class NucleotideSequencePhrasesDataset(Dataset):
@@ -87,6 +87,7 @@ class NucleotideSequencePhrasesDataset(Dataset):
     def __init__(self, source_directory,
                  input_file_pattern='*.gb',
                  input_seqio_format='genbank',
+                 output_filter='seq_with_id',
                  word_length=3,
                  stride=1):
 
@@ -96,12 +97,18 @@ class NucleotideSequencePhrasesDataset(Dataset):
                                                     output_record_filter_func='seq_with_id')
         self.word_length = word_length
         self.stride = stride
+        self.output_filter = output_filter
 
     def __len__(self):
         return self.rawdataset.__len__()
 
     def __getitem__(self, item):
-        seq, id, name = self.rawdataset[item]
-        dseq_phrase = make_phrase_from_(seq=seq, stride=self.stride, word_length=self.word_length)
+        data = self.rawdataset[item]
+        dseq_phrase = make_phrase_from_(seq=data['seq'], stride=self.stride, word_length=self.word_length)
 
-        return dseq_phrase, id, name
+        ret_data = {'seq_phrase' : dseq_phrase}
+        if self.output_filter == 'seq_with_id':
+            ret_data['seq_id'] = data['seq_id']
+            ret_data['seq_name'] = data['seq_name']
+
+        return ret_data

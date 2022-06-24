@@ -17,7 +17,7 @@ def main(gb_data_folder=None,
     # Construct Dataset
     if gb_data_folder is None:
         raise ValueError('The folder with Genbank data files must be provided in `gb_data_folder`')
-    dataset = NucleotideSequencePhrasesDataset(gb_data_folder)
+    dataset = NucleotideSequencePhrasesDataset(gb_data_folder, output_filter='seq_only')
 
     #
     # Construct the tokenizer
@@ -30,6 +30,9 @@ def main(gb_data_folder=None,
     #
     # Construct the data collator with random masking probability
     data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm_probability=masking_probability)
+    print (data_collator)
+    for chunk in data_collator(dataset, return_tensors='pt'):
+        print (chunk)
 
 if __name__ == '__main__':
     main('./data')

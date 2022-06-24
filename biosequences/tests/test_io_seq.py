@@ -31,14 +31,14 @@ def test_simple_read():
 
     dloader = DataLoader(data)
     for dd in dloader:
-        assert dd[0][0] == SEQ_ON_RECORD
+        assert dd['seq'][0] == SEQ_ON_RECORD
 
 def test_full_record_read():
     data = NucleotideSequenceDataset(TEST_DATA, output_record_filter_func='full_record')
     assert len(data) == 1
 
-    assert isinstance(data[0], SeqRecord)
-    assert data[0].seq.__str__() == SEQ_ON_RECORD
+    assert isinstance(data[0]['record'], SeqRecord)
+    assert data[0]['record'].seq.__str__() == SEQ_ON_RECORD
 
 def test_phrase_read():
     data = NucleotideSequencePhrasesDataset(TEST_DATA, word_length=3, stride=1)
@@ -46,9 +46,9 @@ def test_phrase_read():
 
     dloader = DataLoader(data)
     for dd in dloader:
-        assert len(dd[0][0]) == SEQ_ON_RECORD_PHRASE_LEN
-        assert dd[0][0][-3:] == SEQ_ON_RECORD[-3:]
-        assert dd[0][0][:3] == SEQ_ON_RECORD[:3]
+        assert len(dd['seq_phrase'][0]) == SEQ_ON_RECORD_PHRASE_LEN
+        assert dd['seq_phrase'][0][-3:] == SEQ_ON_RECORD[-3:]
+        assert dd['seq_phrase'][0][:3] == SEQ_ON_RECORD[:3]
 
 
 if __name__ == '__main__':
