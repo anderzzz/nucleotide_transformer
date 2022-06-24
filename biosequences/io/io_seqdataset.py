@@ -55,6 +55,7 @@ class NucleotideSequenceProcessor(object):
                 data = self.extract_(record)
                 with open('{}/{}.{}'.format(out_dir, counter, out_file_suffix), 'w') as f_json:
                     json.dump(data, indent=4, fp=f_json)
+                    counter += 1
 
     def extract_(self, record):
         '''Bla bla

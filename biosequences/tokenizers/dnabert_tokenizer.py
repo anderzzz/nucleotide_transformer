@@ -1,4 +1,4 @@
-'''Bla bla
+'''PROBABLY REDUNDANT
 
 '''
 from transformers import BertTokenizer, BertTokenizerFast
@@ -8,7 +8,7 @@ class DNABertTokenizer(BertTokenizer):
     '''Bla bla
 
     '''
-    def __init__(self, vocab_file,
+    def __init__(self, vocab_file, phrasify=False,
                  stride=1, word_length=3,
                  do_lower_case=True, do_basic_tokenize=True,
                  unk_token='[UNK]', sep_token='[SEP]', pad_token='[PAD]', cls_token='[CLS]', mask_token='[MASK]'):
@@ -24,13 +24,15 @@ class DNABertTokenizer(BertTokenizer):
             cls_token=cls_token,
             mask_token=mask_token
         )
+        self.phrasify = phrasify
         self.phrasifier = Phrasifier(stride=stride, word_length=word_length)
 
     def __call__(self, seq, **kwargs):
-        if isinstance(seq, (list,tuple)):
-            text = [self.phrasifier(s) for s in seq]
-        else:
-            text = self.phrasifier(seq)
+        if self.phrasify:
+            if isinstance(seq, (list,tuple)):
+                text = [self.phrasifier(s) for s in seq]
+            else:
+                text = self.phrasifier(seq)
 
         return super().__call__(text, **kwargs)
 
