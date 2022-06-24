@@ -4,7 +4,7 @@
 import torch
 from transformers import BertConfig, BertTokenizer
 
-from biosequences import BertTextSentimentClassifier
+from biosequences.transformers import BertTextSentimentClassifier
 
 TEXT_INP = 'This time Kubrick has truly outdone himself. In two hours and nineteen minutes he ' + \
            'tells the story of the dawn of mankind to the birth of a new species. Brilliant special effect. ' + \

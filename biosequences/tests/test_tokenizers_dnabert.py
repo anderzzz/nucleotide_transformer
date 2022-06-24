@@ -3,8 +3,8 @@
 '''
 import torch
 
-from biosequences import dna_nucleotide_alphabet, NucleotideVocabCreator
-from biosequences import DNABertTokenizer, DNABertTokenizerFast
+from biosequences.utils import dna_nucleotide_alphabet, NucleotideVocabCreator
+from biosequences.tokenizers import DNABertTokenizer, DNABertTokenizerFast
 
 SEQ_STR = 'AATGCGT'
 IDS_SEQ_STR = [3,8,19,62,43,32,1]

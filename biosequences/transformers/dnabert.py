@@ -6,7 +6,7 @@ I THINK THESE CHILD CLASSES ARE UNNECESSARY AND SHOULD BE REPLACED BY STRAIGHTUP
 from torch import nn
 from transformers import BertModel, BertForSequenceClassification
 
-from biosequences import DNABertTokenizer, DNABertTokenizerFast
+from biosequences.tokenizers import DNABertTokenizer, DNABertTokenizerFast
 
 class DNABertEncoder(BertModel):
     '''Bla bla

@@ -2,21 +2,7 @@
 
 '''
 from transformers import BertTokenizer, BertTokenizerFast
-
-def _make_phrase_from_(seq, stride, word_length):
-    '''Bla bla
-
-    '''
-    if not isinstance(seq, str):
-        raise TypeError('Encountered sequence that is not string: {}'.format(seq))
-
-    lower_ind = len(seq) - word_length + 1
-    if lower_ind < 1:
-        raise RuntimeError('Sequence too short: {}'.format(seq))
-    chunks = [seq[ind: ind + word_length] for ind in range(0, lower_ind, stride)]
-    phrase = ' '.join(chunks)
-
-    return phrase
+from biosequences.utils import make_phrase_from_
 
 class DNABertTokenizer(BertTokenizer):
     '''Bla bla
@@ -43,9 +29,9 @@ class DNABertTokenizer(BertTokenizer):
 
     def __call__(self, seq, **kwargs):
         if isinstance(seq, (list,tuple)):
-            text = [_make_phrase_from_(s, self.stride, self.word_length) for s in seq]
+            text = [make_phrase_from_(s, self.stride, self.word_length) for s in seq]
         else:
-            text = _make_phrase_from_(seq, self.stride, self.word_length)
+            text = make_phrase_from_(seq, self.stride, self.word_length)
 
         return super().__call__(text, **kwargs)
 
@@ -76,8 +62,8 @@ class DNABertTokenizerFast(BertTokenizerFast):
 
     def __call__(self, seq, **kwargs):
         if isinstance(seq, (list,tuple)):
-            text = [_make_phrase_from_(s, self.stride, self.word_length) for s in seq]
+            text = [make_phrase_from_(s, self.stride, self.word_length) for s in seq]
         else:
-            text = _make_phrase_from_(seq, self.stride, self.word_length)
+            text = make_phrase_from_(seq, self.stride, self.word_length)
 
         return super().__call__(text, **kwargs)

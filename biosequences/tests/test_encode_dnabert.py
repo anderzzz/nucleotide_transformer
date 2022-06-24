@@ -1,7 +1,8 @@
 '''Bla bla
 
 '''
-from biosequences import DNABertTokenizer, DNABertEncoder
+from biosequences.tokenizers import DNABertTokenizer
+from biosequences.transformers import DNABertEncoder
 from transformers import BertConfig, BertModel
 
 VOCAB_FILE = './tests_data/vocabfile_3wordlength.txt'

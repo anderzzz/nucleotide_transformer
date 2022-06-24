@@ -76,3 +76,27 @@ class NucleotideSequenceDataset(Dataset):
 
     def _filter_record_seq_with_id(self, record):
         return record.seq.__str__(), record.id, record.name
+
+
+class NucleotideSequencePhrasesDataset(Dataset):
+    '''Bla bla
+
+    '''
+    def __init__(self, source_directory,
+                 input_file_pattern='*.gb',
+                 input_seqio_format='genbank',
+                 word_length=3,
+                 stride=1):
+
+        self.rawdataset = NucleotideSequenceDataset(source_directory=source_directory,
+                                                    input_file_pattern=input_file_pattern,
+                                                    input_seqio_format=input_seqio_format,
+                                                    output_record_filter_func='seq_with_id')
+        self.word_length = word_length
+        self.stride = stride
+
+    def __len__(self):
+        return self.rawdataset.__len__()
+
+    def __getitem__(self, item):
+        dseq = self.rawdataset[item]
