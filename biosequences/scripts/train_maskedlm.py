@@ -8,10 +8,9 @@ from biosequences.tokenizers import DNABertTokenizer
 from biosequences.utils import NucleotideVocabCreator, dna_nucleotide_alphabet, Phrasifier
 from biosequences.datacollators import DataCollatorDNAWithMasking
 
-from transformers import BertForMaskedLM
+from transformers import BertForMaskedLM, BertConfig
 from transformers import BertTokenizer
-from transformers import DataCollatorForLanguageModeling
-from transformers import Trainer
+from transformers import Trainer, TrainingArguments
 from datasets import load_dataset
 
 def sequence_grouper(seqs, chunk_size):
@@ -67,6 +66,7 @@ def main(gb_data_folder=None, out_data_folder='/data_out',
     #
     # Construct the data collator with random masking probability
 #    data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm_probability=masking_probability)
+    # The Data Collator should return dictionary that can be put into model as kwargs
     data_collator = DataCollatorDNAWithMasking(tokenizer=tokenizer,
                                                mlm_probability=masking_probability,
                                                word_length=word_length_vocab)
@@ -76,9 +76,31 @@ def main(gb_data_folder=None, out_data_folder='/data_out',
     ##
     xx = data_collator([lm_dataset['train'][0]], return_tensors='pt')
     print (xx)
-    for chunk in data_collator([lm_dataset['train'][0]], return_tensors='pt')['input_ids']:
-        print (tokenizer.decode(chunk))
-        raise RuntimeError
+    print (xx['input_ids'])
+
+    config = BertConfig()
+    model = BertForMaskedLM(config=config)
+
+#    model(**xx)
+
+    training_args = TrainingArguments(
+        output_dir=out_data_folder,
+        overwrite_output_dir=False,
+        num_train_epochs=1,
+        per_gpu_train_batch_size=64,
+        save_steps=10000,
+        save_total_limit=2,
+        prediction_loss_only=True
+    )
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        data_collator=data_collator,
+        train_dataset=lm_dataset['train']
+    )
+
+    trainer.train()
+
 
 if __name__ == '__main__':
     main(gb_data_folder='/Users/andersohrn/PycharmProjects/nucleotide_transformer/biosequences/scripts/data',
