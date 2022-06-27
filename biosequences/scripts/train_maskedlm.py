@@ -6,6 +6,7 @@ from pathlib import Path
 from biosequences.io import NucleotideSequenceProcessor
 from biosequences.tokenizers import DNABertTokenizer
 from biosequences.utils import NucleotideVocabCreator, dna_nucleotide_alphabet, Phrasifier
+from biosequences.datacollators import DataCollatorDNAWithMasking
 
 from transformers import BertForMaskedLM
 from transformers import BertTokenizer
@@ -65,13 +66,19 @@ def main(gb_data_folder=None, out_data_folder='/data_out',
 
     #
     # Construct the data collator with random masking probability
-    data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm_probability=masking_probability)
+#    data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm_probability=masking_probability)
+    data_collator = DataCollatorDNAWithMasking(tokenizer=tokenizer,
+                                               mlm_probability=masking_probability,
+                                               word_length=word_length_vocab)
     print (data_collator)
     ##
     ## HERE!!!
     ##
-    for chunk in data_collator([seq_dataset['train'][0]], return_tensors='pt'):
-        print (chunk)
+    xx = data_collator([lm_dataset['train'][0]], return_tensors='pt')
+    print (xx)
+    for chunk in data_collator([lm_dataset['train'][0]], return_tensors='pt')['input_ids']:
+        print (tokenizer.decode(chunk))
+        raise RuntimeError
 
 if __name__ == '__main__':
     main(gb_data_folder='/Users/andersohrn/PycharmProjects/nucleotide_transformer/biosequences/scripts/data',
