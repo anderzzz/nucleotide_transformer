@@ -26,7 +26,7 @@ def sequence_grouper(seqs, chunk_size):
 
 def main(gb_data_folder=None, out_data_folder='/data_out',
          vocab_file='vocab.txt', create_vocab=True, word_length_vocab=3, stride=1,
-         chunk_size=100,
+         chunk_size=1000,
          masking_probability=0.15):
 
     #
@@ -73,8 +73,9 @@ def main(gb_data_folder=None, out_data_folder='/data_out',
     print (data_collator)
     ##
     ## HERE!!!
-    ##
-    xx = data_collator([lm_dataset['train'][0]], return_tensors='pt')
+    ## WORRY: IF FIRST TOKEN MASKED IN A GROUP CANNOT EXPAND TO NEXT GROUP. PREVENT ALL INTERGROUP MASKS??
+#    xx = data_collator([lm_dataset['train'][k] for k in range(4)], return_tensors='pt')
+    xx = data_collator([lm_dataset['train'][1]], return_tensors='pt')
     print (xx)
     print (xx['input_ids'])
 
