@@ -4,7 +4,6 @@
 from pathlib import Path
 
 from biosequences.io import NucleotideSequenceProcessor
-from biosequences.tokenizers import DNABertTokenizer
 from biosequences.utils import NucleotideVocabCreator, dna_nucleotide_alphabet, Phrasifier
 from biosequences.datacollators import DataCollatorDNAWithMasking
 
@@ -61,29 +60,25 @@ def main(gb_data_folder=None, out_data_folder='/data_out',
         batched=True,
         fn_kwargs={'chunk_size' : chunk_size}
     )
-    print (lm_dataset)
 
     #
-    # Construct the data collator with random masking probability
-#    data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm_probability=masking_probability)
-    # The Data Collator should return dictionary that can be put into model as kwargs
+    # Construct the data collator with random masking probability. Note that the standard Huggingsface method
+    # of token masking does not work for DNA tokens of word length greater than one. Hence the custom collator
     data_collator = DataCollatorDNAWithMasking(tokenizer=tokenizer,
                                                mlm_probability=masking_probability,
                                                word_length=word_length_vocab)
-    print (data_collator)
-    ##
-    ## HERE!!!
-    ## WORRY: IF FIRST TOKEN MASKED IN A GROUP CANNOT EXPAND TO NEXT GROUP. PREVENT ALL INTERGROUP MASKS??
-#    xx = data_collator([lm_dataset['train'][k] for k in range(4)], return_tensors='pt')
-    xx = data_collator([lm_dataset['train'][1]], return_tensors='pt')
-    print (xx)
-    print (xx['input_ids'])
 
+    #xx = data_collator([lm_dataset['train'][1]], return_tensors='pt')
+    #print (xx)
+    #print (xx['input_ids'])
+
+    #
+    # Configure the model for masked language modelling. This is appropriate for training the Bert encoder
     config = BertConfig()
     model = BertForMaskedLM(config=config)
 
-#    model(**xx)
-
+    #
+    # Set up trainer
     training_args = TrainingArguments(
         output_dir=out_data_folder,
         overwrite_output_dir=False,
@@ -100,6 +95,8 @@ def main(gb_data_folder=None, out_data_folder='/data_out',
         train_dataset=lm_dataset['train']
     )
 
+    #
+    # Now train.
     trainer.train()
 
 
