@@ -1,0 +1,5 @@
+Data file: G3PO+.csv
+Retrieved from: https://icube-forge.unistra.fr/n.scalzitti/g3po
+Publication ref: https://link.springer.com/article/10.1186/s12864-020-6707-9
+Description: High-quality gene data selection, wherein exon and interons are confirmed
+Example usage: A subset of transcript IDs are taken from the file in order to retrieve the sequences plus annotations using the methods in `io_ensembl.py`
