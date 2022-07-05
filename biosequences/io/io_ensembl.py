@@ -2,6 +2,8 @@
 
 '''
 import requests
+from pathlib import Path
+from collections import OrderedDict
 
 from dataclasses import dataclass
 from typing import Dict
@@ -59,8 +61,21 @@ class SequenceChunkMaker(object):
     '''Bla bla
 
     '''
-    def __init__(self, save_dir=None):
+    def __init__(self, save_dir='.',
+                 sequence_file_name='sequences.csv',
+                 exon_intron_file_name='exon_intron_labels.csv',
+                 metadata_file_name='metadata.csv'):
         self.save_dir = save_dir
+        self.metadata_file_name = metadata_file_name
+        metadata_file = Path('{}/{}'.format(self.save_dir, self.metadata_file_name))
+        metadata_file.unlink()
+
+        self.sequence_file_name = sequence_file_name
+        self.exon_intron_file_name = exon_intron_file_name
+        with open('{}/{}'.format(save_dir, sequence_file_name), 'w') as fout:
+            print('id,nuc_sequence', file=fout)
+        with open('{}/{}'.format(save_dir, exon_intron_file_name), 'w') as fout:
+            print('id,label_sequence', file=fout)
 
         self.seq_requestor = _Requestor(ensembl_api=ensemble_sequence_id_ret_json)
         self.seq_lookupor = _Requestor(ensembl_api=ensemble_sequence_lookup_ret_json)
@@ -88,19 +103,40 @@ class SequenceChunkMaker(object):
                 label_sequence[start_renorm : end_renorm] = [exon['id']] * (end_renorm - start_renorm)
                 n_exons += 1
 
-            self.save(metadata={'sequence_id': seq_data['id'],
-                                'version' : seq_data['version'],
-                                'species' : lookup_data['species'],
-                                'display_name' : lookup_data['display_name'],
-                                'n_exons' : n_exons},
+            self.save(metadata=OrderedDict([('sequence_id', seq_data['id']),
+                                            ('version', seq_data['version']),
+                                            ('species', lookup_data['species']),
+                                            ('display_name', lookup_data['display_name']),
+                                            ('n_exons', n_exons)]),
                       nuc_sequence=full_sequence,
                       exon_intron=label_sequence)
 
     def save(self, metadata, nuc_sequence, exon_intron):
-        pass
+        '''Bla bla
 
-aa = SequenceChunkMaker()
-aa(['ENSOCUT00000001061', 'ENSOCUT00000001061XXXX#'])
+        '''
+        metadata_file = Path('{}/{}'.format(self.save_dir, self.metadata_file_name))
+        if metadata_file.is_file():
+            line = ','.join([str(x) for x in metadata.values()])
+            with open('{}/{}'.format(self.save_dir, self.metadata_file_name), 'a') as fout:
+                print('{}'.format(line), file=fout)
+        else:
+            line_header = ','.join([str(x) for x in metadata.keys()])
+            line = ','.join([str(x) for x in metadata.values()])
+            with open('{}/{}'.format(self.save_dir, self.metadata_file_name), 'w') as fout:
+                print('{}'.format(line_header), file=fout)
+                print('{}'.format(line), file=fout)
+
+        with open('{}/{}'.format(self.save_dir, self.sequence_file_name), 'a') as fout:
+            print ('{},{}'.format(metadata['sequence_id'], nuc_sequence), file=fout)
+        with open('{}/{}'.format(self.save_dir, self.exon_intron_file_name), 'a') as fout:
+            print ('{},{}'.format(metadata['sequence_id'], exon_intron), file=fout)
+
+aa = SequenceChunkMaker(save_dir='.')
+#
+# TRANSCRIPTS OR GENES????
+#
+aa(['ENSOCUT00000001061', 'ENSHGLG00100007000', 'ENSOCUT00000001061XXXX#'])
 
 pp = _Requestor(ensemble_sequence_id_ret_json)
 rr = _Requestor(ensemble_sequence_lookup_ret_json)
