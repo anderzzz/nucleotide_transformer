@@ -64,18 +64,26 @@ class SequenceChunkMaker(object):
     def __init__(self, save_dir='.',
                  sequence_file_name='sequences.csv',
                  exon_intron_file_name='exon_intron_labels.csv',
-                 metadata_file_name='metadata.csv'):
+                 metadata_file_name='metadata.csv',
+                 transcript_only=True,
+                 yield_data=False
+                 ):
+
+        self.yield_data = yield_data
         self.save_dir = save_dir
         self.metadata_file_name = metadata_file_name
-        metadata_file = Path('{}/{}'.format(self.save_dir, self.metadata_file_name))
-        metadata_file.unlink()
 
         self.sequence_file_name = sequence_file_name
         self.exon_intron_file_name = exon_intron_file_name
-        with open('{}/{}'.format(save_dir, sequence_file_name), 'w') as fout:
-            print('id,nuc_sequence', file=fout)
-        with open('{}/{}'.format(save_dir, exon_intron_file_name), 'w') as fout:
-            print('id,label_sequence', file=fout)
+        if not self.yield_data:
+            metadata_file = Path('{}/{}'.format(self.save_dir, self.metadata_file_name))
+            metadata_file.unlink()
+            with open('{}/{}'.format(save_dir, sequence_file_name), 'w') as fout:
+                print('id,nuc_sequence', file=fout)
+            with open('{}/{}'.format(save_dir, exon_intron_file_name), 'w') as fout:
+                print('id,label_sequence', file=fout)
+
+        self.transcript_only = transcript_only
 
         self.seq_requestor = _Requestor(ensembl_api=ensemble_sequence_id_ret_json)
         self.seq_lookupor = _Requestor(ensembl_api=ensemble_sequence_lookup_ret_json)
@@ -90,11 +98,12 @@ class SequenceChunkMaker(object):
             seq_data = seq_response.json()
             lookup_data = lookup_response.json()
 
+            if self.transcript_only and not lookup_data['object_type'] == 'Transcript':
+                raise RuntimeError('Encountered ID {}, which is not a transcript object'.format(seq_data['id']))
+
             full_sequence = seq_data['seq']
             label_sequence = ['intron'] * len(full_sequence)
-            start_sequence = lookup_data['start']
             end_sequence = lookup_data['end']
-            species = lookup_data['species']
 
             n_exons = 0
             for exon in lookup_data['Exon']:
@@ -103,13 +112,17 @@ class SequenceChunkMaker(object):
                 label_sequence[start_renorm : end_renorm] = [exon['id']] * (end_renorm - start_renorm)
                 n_exons += 1
 
-            self.save(metadata=OrderedDict([('sequence_id', seq_data['id']),
-                                            ('version', seq_data['version']),
-                                            ('species', lookup_data['species']),
-                                            ('display_name', lookup_data['display_name']),
-                                            ('n_exons', n_exons)]),
-                      nuc_sequence=full_sequence,
-                      exon_intron=label_sequence)
+            metadata = OrderedDict([('sequence_id', seq_data['id']),
+                                    ('version', seq_data['version']),
+                                    ('species', lookup_data['species']),
+                                    ('display_name', lookup_data['display_name']),
+                                    ('n_exons', n_exons)])
+            if not self.yield_data:
+                self.save(metadata=metadata,
+                          nuc_sequence=full_sequence,
+                          exon_intron=label_sequence)
+            else:
+                yield metadata, full_sequence, label_sequence
 
     def save(self, metadata, nuc_sequence, exon_intron):
         '''Bla bla
@@ -132,13 +145,3 @@ class SequenceChunkMaker(object):
         with open('{}/{}'.format(self.save_dir, self.exon_intron_file_name), 'a') as fout:
             print ('{},{}'.format(metadata['sequence_id'], exon_intron), file=fout)
 
-aa = SequenceChunkMaker(save_dir='.')
-#
-# TRANSCRIPTS OR GENES????
-#
-aa(['ENSOCUT00000001061', 'ENSHGLG00100007000', 'ENSOCUT00000001061XXXX#'])
-
-pp = _Requestor(ensemble_sequence_id_ret_json)
-rr = _Requestor(ensemble_sequence_lookup_ret_json)
-list(pp.retrieve(['ENSOCUT00000001061XXXX#']))
-list(rr.retrieve(['ENSOCUT00000001061']))
