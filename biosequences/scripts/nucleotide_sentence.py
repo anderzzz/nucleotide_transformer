@@ -1,4 +1,8 @@
-'''Bla bla
+'''Functions to generate nucleotide sentences from a large source file of nucleotide sequences.
+
+A typical example is to generate sentences from random spots along a full genome, such as the
+fasta file of the Genome Reference Consortium Human Build 38 patch release 14 (GRCh38.p14), see
+https://www.ncbi.nlm.nih.gov/assembly/GCF_000001405.40.
 
 '''
 class SequenceSentenceException(Exception):
@@ -7,8 +11,6 @@ class SequenceSentenceException(Exception):
 class SequenceProcessException(Exception):
     pass
 
-MAX_FAILURE = 1000
-
 def _count_generator(reader):
     b = reader(1024 * 1024)
     while b:
@@ -16,6 +18,7 @@ def _count_generator(reader):
         b = reader(1024 * 1024)
 
 def _nuc_checker(line):
+    '''Criteria to approve/deny a sequence for inclusion. Typically deny unknown nucleotides, labelled N or n'''
     if ('N' in line) or ('n' in line):
         return False, 'Undefined nucleotide in sequence chunk'
     else:
@@ -30,7 +33,7 @@ def make_sequence_sentences(fp_seq,
                             lower_id_frac_generator_kwargs={},
                             sentence_length_generator_kwargs={},
                             nucleotide_checker_kwargs={}):
-    '''Bla bla
+    '''Main function to generate sentences.
 
     '''
     #
@@ -58,13 +61,22 @@ def make_sequence_sentences(fp_seq,
         sentence_target_len = None
         sentence_build = None
         sentence_build_len = 0
+
+        #
+        # Iterate one line at a time from the file
         for k_line, line in enumerate(fin):
+
+            #
+            # If line appending is active, go here
             if append_to_collection:
                 ok, remark = nucleotide_checker(line, **nucleotide_checker_kwargs)
                 if ok:
                     line_ = line[:-1]
                     sentence_build += line_
                     sentence_build_len += len(line_)
+
+                    #
+                    # If enough number of characters have been added to sentence, print to disk
                     if sentence_build_len >= sentence_target_len:
                         sentence = sentence_build[:sentence_target_len]
                         print ('{},{},{},{}'.format(k_attempt,
@@ -77,11 +89,17 @@ def make_sequence_sentences(fp_seq,
                         sentence_build = None
                         append_to_collection = False
 
+                #
+                # If invalid nucleotide encountered, stop all further aggregation
                 else:
                     sentence_build = None
                     append_to_collection = False
 
+            #
+            # Check if this line should initiate sentence creation
             else:
+                #
+                # The row mask tests if current line corresponds to one of the random file fractions
                 row_mask = [k_line == int(n_lines_seq * f[0]) for f in file_indices]
                 if any(row_mask):
                     ok, remark = nucleotide_checker(line, **nucleotide_checker_kwargs)
@@ -102,32 +120,15 @@ def make_sequence_sentences(fp_seq,
                         append_to_collection = False
 
 
-from numpy.random import default_rng
-rng = default_rng()
-with open('/Users/andersohrn/PycharmProjects/nucleotide_transformer/test_xae.csv', 'w') as fout:
-    make_sequence_sentences(fp_seq='/Users/andersohrn/PycharmProjects/nucleotide_transformer/ncbi-genomes-2022-07-05/xae',
-                            fp_out=fout,
-                            out_ind_offset=15999999,
-                            n_attempts=1000,
-                            lower_id_frac_generator=rng.random,
-                            sentence_length_generator=rng.integers,
-                            sentence_length_generator_kwargs={'low' : 5, 'high' : 1000},
-                            nucleotide_checker=_nuc_checker)
-with open('/Users/andersohrn/PycharmProjects/nucleotide_transformer/test_xaf.csv', 'w') as fout:
-    make_sequence_sentences(fp_seq='/Users/andersohrn/PycharmProjects/nucleotide_transformer/ncbi-genomes-2022-07-05/xaf',
-                            fp_out=fout,
-                            out_ind_offset=19999999,
-                            n_attempts=1000,
-                            lower_id_frac_generator=rng.random,
-                            sentence_length_generator=rng.integers,
-                            sentence_length_generator_kwargs={'low' : 5, 'high' : 1000},
-                            nucleotide_checker=_nuc_checker)
-with open('/Users/andersohrn/PycharmProjects/nucleotide_transformer/test_xag.csv', 'w') as fout:
-    make_sequence_sentences(fp_seq='/Users/andersohrn/PycharmProjects/nucleotide_transformer/ncbi-genomes-2022-07-05/xag',
-                            fp_out=fout,
-                            out_ind_offset=23999999,
-                            n_attempts=1000,
-                            lower_id_frac_generator=rng.random,
-                            sentence_length_generator=rng.integers,
-                            sentence_length_generator_kwargs={'low' : 5, 'high' : 1000},
-                            nucleotide_checker=_nuc_checker)
+if __name__ == '__main__':
+    from numpy.random import default_rng
+    rng = default_rng()
+    with open('/test_xak.csv', 'w') as fout:
+        make_sequence_sentences(fp_seq='/Users/andersohrn/PycharmProjects/nucleotide_transformer/ncbi-genomes-2022-07-05/xak',
+                                fp_out=fout,
+                                out_ind_offset=39999999,
+                                n_attempts=308,
+                                lower_id_frac_generator=rng.random,
+                                sentence_length_generator=rng.integers,
+                                sentence_length_generator_kwargs={'low' : 5, 'high' : 1000},
+                                nucleotide_checker=_nuc_checker)
