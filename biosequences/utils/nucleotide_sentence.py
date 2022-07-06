@@ -21,7 +21,9 @@ def _nuc_checker(line):
     else:
         return True, ''
 
-def make_sequence_sentences(fp_seq, fp_out, n_attempts,
+def make_sequence_sentences(fp_seq,
+                            fp_out, out_ind_offset,
+                            n_attempts,
                             lower_id_frac_generator,
                             sentence_length_generator,
                             nucleotide_checker,
@@ -53,50 +55,79 @@ def make_sequence_sentences(fp_seq, fp_out, n_attempts,
 
         append_to_collection = False
         k_attempt = 0
-        collection = []
+        sentence_target_len = None
+        sentence_build = None
+        sentence_build_len = 0
         for k_line, line in enumerate(fin):
             if append_to_collection:
                 ok, remark = nucleotide_checker(line, **nucleotide_checker_kwargs)
                 if ok:
-                    collection.append(line.replace('\n',''))
-                    sentence_len = file_indices[k_attempt][2]
-                    if sum([len(x) for x in collection]) >= sentence_len:
-                        sentence = ''.join(collection)
-                        sentence = sentence[:sentence_len]
-                        print ('{},{},{},{}'.format(k_attempt,sentence_len, k_line_start, sentence), file=fp_out)
+                    line_ = line[:-1]
+                    sentence_build += line_
+                    sentence_build_len += len(line_)
+                    if sentence_build_len >= sentence_target_len:
+                        sentence = sentence_build[:sentence_target_len]
+                        print ('{},{},{},{}'.format(k_attempt,
+                                                    sentence_target_len,
+                                                    k_line_start + out_ind_offset,
+                                                    sentence),
+                               file=fp_out)
                         print ('row added: {}'.format(k_attempt))
 
-                        collection = []
+                        sentence_build = None
                         append_to_collection = False
 
                 else:
-                    collection = []
+                    sentence_build = None
                     append_to_collection = False
 
             else:
                 row_mask = [k_line == int(n_lines_seq * f[0]) for f in file_indices]
                 if any(row_mask):
-                    k_line_start = k_line
-                    k_attempt = row_mask.index(True)
-                    line_ = line.replace('\n','')
-                    ok, remark = nucleotide_checker(line_, **nucleotide_checker_kwargs)
+                    ok, remark = nucleotide_checker(line, **nucleotide_checker_kwargs)
                     if ok:
+                        k_line_start = k_line
+                        k_attempt = row_mask.index(True)
+                        line_ = line[:-1]
                         col_ind = int(len(line_) * file_indices[k_attempt][1])
-                        collection.append(line_[col_ind:])
+                        sentence_target_len = file_indices[k_attempt][2]
+                        line_ = line_[col_ind:]
+                        sentence_build = line_
+                        sentence_build_len = len(line_)
+
                         append_to_collection = True
 
                     else:
-                        collection = []
+                        sentence_build = None
                         append_to_collection = False
 
 
 from numpy.random import default_rng
 rng = default_rng()
-with open('/Users/andersohrn/PycharmProjects/nucleotide_transformer/test.csv', 'w') as fout:
-    make_sequence_sentences(fp_seq='/Users/andersohrn/PycharmProjects/nucleotide_transformer/ncbi-genomes-2022-07-05/GCF_000001405.40_GRCh38.p14_genomic.fna',
+with open('/Users/andersohrn/PycharmProjects/nucleotide_transformer/test_xae.csv', 'w') as fout:
+    make_sequence_sentences(fp_seq='/Users/andersohrn/PycharmProjects/nucleotide_transformer/ncbi-genomes-2022-07-05/xae',
                             fp_out=fout,
-                            n_attempts=100,
+                            out_ind_offset=15999999,
+                            n_attempts=1000,
                             lower_id_frac_generator=rng.random,
                             sentence_length_generator=rng.integers,
-                            sentence_length_generator_kwargs={'low' : 10, 'high' : 1000},
+                            sentence_length_generator_kwargs={'low' : 5, 'high' : 1000},
+                            nucleotide_checker=_nuc_checker)
+with open('/Users/andersohrn/PycharmProjects/nucleotide_transformer/test_xaf.csv', 'w') as fout:
+    make_sequence_sentences(fp_seq='/Users/andersohrn/PycharmProjects/nucleotide_transformer/ncbi-genomes-2022-07-05/xaf',
+                            fp_out=fout,
+                            out_ind_offset=19999999,
+                            n_attempts=1000,
+                            lower_id_frac_generator=rng.random,
+                            sentence_length_generator=rng.integers,
+                            sentence_length_generator_kwargs={'low' : 5, 'high' : 1000},
+                            nucleotide_checker=_nuc_checker)
+with open('/Users/andersohrn/PycharmProjects/nucleotide_transformer/test_xag.csv', 'w') as fout:
+    make_sequence_sentences(fp_seq='/Users/andersohrn/PycharmProjects/nucleotide_transformer/ncbi-genomes-2022-07-05/xag',
+                            fp_out=fout,
+                            out_ind_offset=23999999,
+                            n_attempts=1000,
+                            lower_id_frac_generator=rng.random,
+                            sentence_length_generator=rng.integers,
+                            sentence_length_generator_kwargs={'low' : 5, 'high' : 1000},
                             nucleotide_checker=_nuc_checker)
