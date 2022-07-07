@@ -47,10 +47,12 @@ def test_phrase_read():
 
 def test_convert_2json():
     phraser = Phrasifier(stride=1, word_length=3)
-    converter = NucleotideSequenceProcessor(TEST_DATA, phrasifier=phraser)
-    converter.convert_to_('json', out_dir=TEST_DATA, out_file_suffix='json')
+    converter = NucleotideSequenceProcessor(source_directory=TEST_DATA,
+                                            source_file_format='genbank',
+                                            source_directory_file_pattern='*.gb')
+    converter.save_as_json(save_dir=TEST_DATA, seq_transformer=phraser)
 
 if __name__ == '__main__':
-    test_simple_read()
-    test_phrase_read()
+#    test_simple_read()
+#    test_phrase_read()
     test_convert_2json()

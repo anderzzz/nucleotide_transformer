@@ -11,8 +11,8 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 
-def _read_seq_file_(fp, format_name='genbank'):
-    for record in SeqIO.parse(fp, format_name):
+def _read_seq_file_(fp, format='genbank'):
+    for record in SeqIO.parse(fp, format):
         yield record
 
 def _read_seq_csv_(fp, index_col=None, key='sequence_chunk', description=''):
@@ -86,12 +86,12 @@ class NucleotideSequenceProcessor(object):
                            'sequence_data': seq_out},
                           indent=4, fp=f_json)
 
-from biosequences.utils import Phrasifier
-p = NucleotideSequenceProcessor(source_directory='/Users/andersohrn/PycharmProjects/nucleotide_transformer',
-                                source_directory_file_pattern='test*.csv',
-                                source_file_format='csv')
-pp = Phrasifier(1,3,True)
-p.save_as_json('.',save_prefix='dummy',seq_transformer=pp)
+#from biosequences.utils import Phrasifier
+#p = NucleotideSequenceProcessor(source_directory='/Users/andersohrn/PycharmProjects/nucleotide_transformer',
+#                                source_directory_file_pattern='test*.csv',
+#                                source_file_format='csv')
+#pp = Phrasifier(1,3,True)
+#p.save_as_json('.',save_prefix='dummy',seq_transformer=pp)
 
 class NucleotideSequenceDataset(Dataset):
     '''Dataset of nucleotide sequences from collection of data in some standard format
