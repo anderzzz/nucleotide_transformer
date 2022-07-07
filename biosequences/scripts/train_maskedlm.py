@@ -3,7 +3,7 @@
 '''
 from pathlib import Path
 
-from biosequences.io import NucleotideSequenceProcessor
+from biosequences.io import NucleotideSequenceProcessor, factory
 from biosequences.utils import NucleotideVocabCreator, dna_nucleotide_alphabet, Phrasifier
 from biosequences.datacollators import DataCollatorDNAWithMasking
 
@@ -23,7 +23,7 @@ def sequence_grouper(seqs, chunk_size):
     result['labels'] = result['input_ids'].copy()
     return result
 
-def main(gb_data_folder=None, out_data_folder='/data_out',
+def main(data_folder=None, out_data_folder='/data_out',
          vocab_file='vocab.txt', create_vocab=True, word_length_vocab=3, stride=1,
          chunk_size=1000,
          masking_probability=0.15):

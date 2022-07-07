@@ -7,3 +7,7 @@ from biosequences.utils.nucleotide_vocab import (
 from biosequences.utils.phrase_maker import (
     Phrasifier
 )
+
+from biosequences.utils._factory import (
+    _Factory
+)

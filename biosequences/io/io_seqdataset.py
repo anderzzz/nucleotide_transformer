@@ -3,13 +3,48 @@
 '''
 from pathlib import Path
 import json
+from collection.abc import Iterable
+
 from torch.utils.data import Dataset
 from Bio import SeqIO
 
 def _read_seq_file_(fp, format_name='genbank'):
     return [record for record in SeqIO.parse(fp, format_name)]
 
-class NucleotideSequenceProcessor(object):
+class _NucleotideRawSequenceProcessor(object):
+    '''Bla bla
+
+    '''
+    def __init__(self,
+                 source_directory=None,
+                 source_directory_file_pattern='*',
+                 source_files=None,
+                 phrasifier=None
+                ):
+
+        if not source_directory is None:
+            p = Path(source_directory)
+            if not p.is_dir():
+                raise ValueError('File folder {} not found'.format(source_directory))
+            self.file_paths = list(p.glob(source_directory_file_pattern))
+
+        elif not source_files is None:
+            if isinstance(source_files, Iterable):
+                self.file_paths = source_files
+            else:
+                raise ValueError('The `source_files` is not an iterable, rather: {}'.format(type(source_files)))
+
+        else:
+            raise ValueError('Failed to specify raw data source files')
+
+        if phrasifier is None:
+            self.phrasify_ = lambda x:x
+        elif callable(phrasifier):
+            self.phrasify_ = phrasifier
+        else:
+            raise ValueError('The phrasifier has to be callable or None, not of type {}'.format(type(phrasifier)))
+
+class NucleotideSequenceProcessor(_NucleotideRawSequenceProcessor):
     '''Bla bla
 
     '''
@@ -20,6 +55,8 @@ class NucleotideSequenceProcessor(object):
                  attributes_extract=('id', 'name', 'seq'),
                  phrasifier=None
                  ):
+
+        super(NucleotideSequenceProcessor, self).__init__(source_directory=source_directory)
 
         p = Path(source_directory)
         if not p.is_dir():
