@@ -12,7 +12,7 @@ from transformers import BertTokenizer
 from transformers import Trainer, TrainingArguments
 from datasets import load_dataset
 
-def sequence_grouper(seqs, chunk_size):
+def _sequence_grouper(seqs, chunk_size):
     concat_seq = {k : sum(seqs[k], []) for k in seqs.keys()}
     total_length = len(concat_seq[list(seqs.keys())[0]])
     total_length = (total_length // chunk_size) * chunk_size
@@ -23,13 +23,13 @@ def sequence_grouper(seqs, chunk_size):
     result['labels'] = result['input_ids'].copy()
     return result
 
-def main(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pattern='*.csv', upper_lower='upper',
-         folder_seq_sentence=None, seq_sentence_prefix='',
-         vocab_file='vocab.txt', create_vocab=True, word_length_vocab=3, stride=1,
-         chunk_size=1000,
-         masking_probability=0.15,
-         bert_config_kwargs={},
-         folder_training_output=None):
+def fit_bert_maskedlm(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pattern='*.csv', upper_lower='upper',
+                      folder_seq_sentence=None, seq_sentence_prefix='',
+                      vocab_file='vocab.txt', create_vocab=True, word_length_vocab=3, stride=1,
+                      chunk_size=1000,
+                      masking_probability=0.15,
+                      bert_config_kwargs={},
+                      folder_training_output=None):
 
     #
     # Some argument sanity checks
@@ -84,7 +84,7 @@ def main(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pattern='*.csv'
         lambda x: tokenizer(x['seq']), batched=True, remove_columns=['seq', 'id', 'name', 'description']
     )
     lm_dataset = tokenized_dataset.map(
-        sequence_grouper,
+        _sequence_grouper,
         batched=True,
         fn_kwargs={'chunk_size' : chunk_size}
     )
@@ -95,10 +95,6 @@ def main(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pattern='*.csv'
     data_collator = DataCollatorDNAWithMasking(tokenizer=tokenizer,
                                                mlm_probability=masking_probability,
                                                word_length=word_length_vocab)
-
-    #xx = data_collator([lm_dataset['train'][1]], return_tensors='pt')
-    #print (xx)
-    #print (xx['input_ids'])
 
     #
     # Configure the model for masked language modelling. This is appropriate for training the Bert encoder
@@ -112,7 +108,7 @@ def main(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pattern='*.csv'
         overwrite_output_dir=False,
         num_train_epochs=1,
         per_gpu_train_batch_size=64,
-        save_steps=10000,
+        save_steps=1000,
         save_total_limit=2,
         prediction_loss_only=True
     )
@@ -126,9 +122,3 @@ def main(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pattern='*.csv'
     #
     # Now train.
     trainer.train()
-
-
-#if __name__ == '__main__':
-#    main(
-#        folder_seq_raw=
-#    )
