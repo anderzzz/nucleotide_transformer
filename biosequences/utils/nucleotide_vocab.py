@@ -15,11 +15,11 @@ class NucleotideAlphabet:
 
 dna_nucleotide_alphabet = NucleotideAlphabet(letters={'A','T', 'C', 'G'},
                                            letters_extended=set(),
-                                           missing='X'
+                                           missing='N'
                                            )
 rna_nucleotide_alphabet = NucleotideAlphabet(letters={'A','U', 'C', 'G'},
                                            letters_extended=set(),
-                                           missing='X'
+                                           missing='N'
                                            )
 
 class NucleotideVocabCreator(object):
@@ -27,7 +27,8 @@ class NucleotideVocabCreator(object):
 
     '''
     def __init__(self, alphabet,
-                 do_lower_case=True,
+                 do_lower_case=False,
+                 do_upper_case=True,
                  extended_letters=False,
                  missing=False,
                  unk_token='[UNK]', sep_token='[SEP]', pad_token='[PAD]', cls_token='[CLS]', mask_token='[MASK]'):
@@ -38,8 +39,13 @@ class NucleotideVocabCreator(object):
             self.character_set += alphabet.letters_extended
         if missing:
             self.character_set += alphabet.missing
+
+        if do_lower_case and do_upper_case:
+            raise ValueError('Vocabulary set to be both all upper and all lower, not possible; reset arguments')
         if do_lower_case:
             self.character_set = [token.lower() for token in self.character_set]
+        if do_upper_case:
+            self.character_set = [token.upper() for token in self.character_set]
 
         self.special_tokens = [token for token in [unk_token, sep_token, pad_token, cls_token, mask_token] if not token is None]
 

@@ -5,10 +5,13 @@ class Phrasifier(object):
     '''Bla bla
 
     '''
-    def __init__(self, stride, word_length, upper=False):
+    def __init__(self, stride, word_length, do_upper_case=True, do_lower_case=False):
         self.stride = stride
         self.word_length = word_length
-        self.upper = upper
+        if do_lower_case and do_upper_case:
+            raise ValueError('The phrasifier cannot make both upper and lower case; reset parameters')
+        self.upper = do_upper_case
+        self.lower = do_lower_case
 
     def __call__(self, seq):
         if not isinstance(seq, str):
@@ -21,5 +24,7 @@ class Phrasifier(object):
         phrase = ' '.join(chunks)
         if self.upper:
             phrase = phrase.upper()
+        elif self.lower:
+            phrase = phrase.lower()
 
         return phrase
