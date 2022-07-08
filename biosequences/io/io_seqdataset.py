@@ -4,12 +4,16 @@
 from pathlib import Path
 import json
 from collections.abc import Iterable
-import pandas as pd
 
+import pandas as pd
 from torch.utils.data import Dataset
+
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
+
+class NucleotideSequenceProcessorIndexException(Exception):
+    pass
 
 def _read_seq_file_(fp, format='genbank'):
     for record in SeqIO.parse(fp, format):
@@ -20,6 +24,14 @@ def _read_seq_csv_(fp, index_col=None, key='sequence_chunk', description=''):
     for index, value in df.iterrows():
         yield SeqRecord(Seq(value[key]), id=str(index), name=str(fp), description=description)
 
+def _seqrecord2dict_(record):
+    return {
+        'seq' : record.seq.__str__(),
+        'id' : record.id.__str__(),
+        'name' : record.name.__str__(),
+        'description' : record.description.__str__()
+    }
+
 class NucleotideSequenceProcessor(object):
     '''Bla bla
 
@@ -28,7 +40,7 @@ class NucleotideSequenceProcessor(object):
                  source_directory=None,
                  source_directory_file_pattern='*',
                  source_files=None,
-                 source_file_format='csv'
+                 source_file_format='csv',
                 ):
 
         if not source_directory is None:
@@ -55,6 +67,19 @@ class NucleotideSequenceProcessor(object):
         else:
             raise ValueError('Unknown source file format: {}'.format(source_file_format))
 
+    def process_file_(self, k_file):
+        '''Bla bla
+
+        '''
+        try:
+            fp = self.file_paths[k_file]
+        except IndexError:
+            raise NucleotideSequenceProcessorIndexException(
+                'File of index {} exceed number of files {}'.format(k_file, len(self.file_paths))
+            )
+
+        return list(self.source_reader(fp, **self.source_reader_kwargs))
+
     def __iter__(self):
         '''Bla bla
 
@@ -75,23 +100,11 @@ class NucleotideSequenceProcessor(object):
             raise ValueError('Sequence transformer must be callable')
 
         for k_record, record in enumerate(self):
-            seq_out = _transform(record.seq.__str__(), **seq_transformer_kwargs)
-            metadata_id = record.id
-            metadata_name = record.name
-            metadata_description = record.description
+            record_data = _seqrecord2dict_(record)
+            record_data['seq'] = _transform(record_data['seq'], **seq_transformer_kwargs)
             with open('{}/{}{}.json'.format(save_dir, save_prefix, k_record), 'w') as f_json:
-                json.dump({'name': metadata_name,
-                           'id': metadata_id,
-                           'description': metadata_description,
-                           'sequence_data': seq_out},
-                          indent=4, fp=f_json)
+                json.dump(record_data, indent=4, fp=f_json)
 
-#from biosequences.utils import Phrasifier
-#p = NucleotideSequenceProcessor(source_directory='/Users/andersohrn/PycharmProjects/nucleotide_transformer',
-#                                source_directory_file_pattern='test*.csv',
-#                                source_file_format='csv')
-#pp = Phrasifier(1,3,True)
-#p.save_as_json('.',save_prefix='dummy',seq_transformer=pp)
 
 class NucleotideSequenceDataset(Dataset):
     '''Dataset of nucleotide sequences from collection of data in some standard format
@@ -111,42 +124,57 @@ class NucleotideSequenceDataset(Dataset):
                               compatible with `DataLoader`
 
     '''
-    def __init__(self, source_directory,
-                 input_file_pattern='*.gb',
-                 input_seqio_format='genbank',
-                 attributes_extract=('id', 'name', 'seq'),
-                 phrasifier=None
+    def __init__(self,
+                 source_directory=None,
+                 source_directory_file_pattern='*',
+                 source_files=None,
+                 source_file_format='csv',
+                 phrasifier=None,
+                 phrasifier_kwargs={}
                  ):
         super(NucleotideSequenceDataset, self).__init__()
 
         self.processor = NucleotideSequenceProcessor(source_directory=source_directory,
-                                                     input_file_pattern=input_file_pattern,
-                                                     input_seqio_format=input_seqio_format,
-                                                     attributes_extract=attributes_extract,
-                                                     phrasifier=phrasifier)
+                                                     source_directory_file_pattern=source_directory_file_pattern,
+                                                     source_files=source_files,
+                                                     source_file_format=source_file_format)
 
         #
         # Map each sequence ID to an integer index. This requires reading all files because some
         # file formats, like Genbank, can have a variable number of sequences per file
         self.seq_mapper = {}
         index = 0
-        for fp in self.processor.file_paths:
-            records = _read_seq_file_(fp, format_name=input_seqio_format)
-            for record in records:
-                self.seq_mapper[index] = (fp, record.id)
-                index += 1
+        fp_counter = 0
+        while True:
+            try:
+                data = self.processor.process_file_(fp_counter)
+            except NucleotideSequenceProcessorIndexException:
+                break
+
+            for ind in range(len(data)):
+                self.seq_mapper[index + ind] = (fp_counter, ind)
+
+            index += len(data)
+            fp_counter += 1
 
         self.n_file_paths = index
+
+        self.transform_seq_kwargs = phrasifier_kwargs
+        if phrasifier is None:
+            self.transform_seq = lambda x : x
+        elif callable(phrasifier):
+            self.transform_seq = phrasifier
+        else:
+            raise ValueError('Sequence phrasifier must be callable')
+
 
     def __len__(self):
         return self.n_file_paths
 
     def __getitem__(self, item):
-        fp, record_id = self.seq_mapper[item]
-        records = _read_seq_file_(fp, format_name=self.processor.input_seqio_format)
+        fp_counter, record_id = self.seq_mapper[item]
+        record = self.processor.process_file_(fp_counter)[record_id]
+        record = _seqrecord2dict_(record)
+        record['seq'] = self.transform_seq(record['seq'], **self.transform_seq_kwargs)
 
-        # The SeqRecord index in case of multiple sequences per file is 1-based
-        counter = int(record_id.split('.')[-1])
-        record = records[counter - 1]
-
-        return self.processor.extract_(record)
+        return record

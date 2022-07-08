@@ -27,7 +27,8 @@ SEQ_ON_RECORD_PHRASE_LEN = 4 * (len(SEQ_ON_RECORD) - 2) - 1
 
 
 def test_simple_read():
-    data = NucleotideSequenceDataset(TEST_DATA)
+    data = NucleotideSequenceDataset(source_files=['{}/jx871316.gb'.format(TEST_DATA)],
+                                     source_file_format='genbank')
     assert len(data) == 1
 
     dloader = DataLoader(data)
@@ -36,7 +37,8 @@ def test_simple_read():
 
 def test_phrase_read():
     phraser = Phrasifier(stride=1, word_length=3)
-    data = NucleotideSequenceDataset(TEST_DATA, phrasifier=phraser)
+    data = NucleotideSequenceDataset(source_files=['{}/jx871316.gb'.format(TEST_DATA)],
+                                     source_file_format='genbank', phrasifier=phraser)
     assert len(data) == 1
 
     dloader = DataLoader(data)
@@ -52,7 +54,15 @@ def test_convert_2json():
                                             source_directory_file_pattern='*.gb')
     converter.save_as_json(save_dir=TEST_DATA, seq_transformer=phraser)
 
+def test_convert_2json2():
+    phraser = Phrasifier(stride=1, word_length=3, upper=True)
+    p = NucleotideSequenceProcessor(source_directory=TEST_DATA,
+                                    source_directory_file_pattern='test*.csv',
+                                    source_file_format='csv')
+    p.save_as_json(save_dir=TEST_DATA, save_prefix='dummy', seq_transformer=phraser)
+
 if __name__ == '__main__':
-#    test_simple_read()
-#    test_phrase_read()
+    test_simple_read()
+    test_phrase_read()
     test_convert_2json()
+    test_convert_2json2()
