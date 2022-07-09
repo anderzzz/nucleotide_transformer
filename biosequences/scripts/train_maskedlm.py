@@ -2,6 +2,7 @@
 
 '''
 from pathlib import Path
+import random
 
 from biosequences.io import NucleotideSequenceProcessor
 from biosequences.utils import NucleotideVocabCreator, dna_nucleotide_alphabet, Phrasifier
@@ -25,11 +26,13 @@ def _sequence_grouper(seqs, chunk_size):
 
 def fit_bert_maskedlm(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pattern='*.csv', upper_lower='upper',
                       folder_seq_sentence=None, seq_sentence_prefix='',
+                      split_ratio_test=0.05, split_ratio_validate=0.05, shuffle=True, seed=42,
                       vocab_file='vocab.txt', create_vocab=True, word_length_vocab=3, stride=1,
                       chunk_size=1000,
                       masking_probability=0.15,
                       bert_config_kwargs={},
-                      folder_training_output=None):
+                      folder_training_output=None,
+                      training_kwargs={}):
 
     #
     # Some argument sanity checks
@@ -49,6 +52,8 @@ def fit_bert_maskedlm(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pa
         folder_training_output_ = folder_seq_sentence
     else:
         folder_training_output_ = folder_training_output
+
+    random.seed(seed)
 
     #
     # Construct sequence sentences from sequence data if such folder is given
@@ -75,11 +80,27 @@ def fit_bert_maskedlm(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pa
     tokenizer = BertTokenizer(vocab_file='{}/{}'.format(folder_seq_sentence, vocab_file), do_lower_case=do_lower_case)
 
     #
-    # Tokenize the dataset and make compatible with Huggingface data loaders
+    # Create dataset appropriately split from the sequence sentences stored in the json files
     json_files = Path(folder_seq_sentence).glob('{}*.json'.format(seq_sentence_prefix))
     json_files = ['{}'.format(x.resolve()) for x in json_files]
+    len_train = round(len(json_files) * (1.0 - split_ratio_test - split_ratio_validate))
+    if len_train <= 0:
+        raise ValueError('Split ratios for test and validate exceed 1.0, leaving nothing for training')
+    len_test = round(len(json_files) * split_ratio_test)
+    pp = list(range(len(json_files)))
+    if shuffle:
+        random.shuffle(pp)
+    json_files_split = {'train' : [json_files[k] for k in pp[:len_train]]}
+    if len_test > 0:
+        json_files_split['test'] = [json_files[k] for k in pp[len_train:len_train + len_test]]
+    if len(json_files) - len_train - len_test > 0:
+        json_files_split['validate'] = [json_files[k] for k in pp[len_train + len_test:]]
+    json_files = json_files_split
     seq_dataset = load_dataset('json',
                                data_files=json_files)
+
+    #
+    # Tokenize the data and make compatible with huggingsface collator
     tokenized_dataset = seq_dataset.map(
         lambda x: tokenizer(x['seq']), batched=True, remove_columns=['seq', 'id', 'name', 'description']
     )
@@ -105,12 +126,7 @@ def fit_bert_maskedlm(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pa
     # Set up trainer
     training_args = TrainingArguments(
         output_dir=folder_training_output_,
-        overwrite_output_dir=False,
-        num_train_epochs=1,
-        per_gpu_train_batch_size=64,
-        save_steps=1000,
-        save_total_limit=2,
-        prediction_loss_only=True
+        **training_kwargs
     )
     trainer = Trainer(
         model=model,
@@ -122,3 +138,7 @@ def fit_bert_maskedlm(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pa
     #
     # Now train.
     trainer.train()
+    trainer.save_model(output_dir=folder_training_output_)
+    print (trainer)
+
+    print ('hellow')

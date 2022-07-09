@@ -49,6 +49,9 @@ class NucleotideSequenceProcessor(object):
                 raise ValueError('File folder {} not found'.format(source_directory))
             self.file_paths = list(p.glob(source_directory_file_pattern))
 
+            if len(self.file_paths) == 0:
+                raise ValueError('Zero file paths found in directory {} and query {}'.format(source_directory, source_directory_file_pattern))
+
         elif not source_files is None:
             if isinstance(source_files, Iterable):
                 self.file_paths = source_files
