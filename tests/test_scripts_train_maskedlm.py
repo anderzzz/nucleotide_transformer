@@ -1,7 +1,7 @@
 '''Bla bla
 
 '''
-from biosequences.scripts.train_maskedlm import fit_bert_maskedlm
+from scripts.train_maskedlm import fit_bert_maskedlm
 
 TEST_DATA = './tests_data/'
 

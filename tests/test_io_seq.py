@@ -55,7 +55,7 @@ def test_convert_2json():
     converter.save_as_json(save_dir=TEST_DATA, seq_transformer=phraser)
 
 def test_convert_2json2():
-    phraser = Phrasifier(stride=1, word_length=3, upper=True)
+    phraser = Phrasifier(stride=1, word_length=3, do_upper_case=True)
     p = NucleotideSequenceProcessor(source_directory=TEST_DATA,
                                     source_directory_file_pattern='test*.csv',
                                     source_file_format='csv')

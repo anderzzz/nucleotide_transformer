@@ -5,7 +5,7 @@ from transformers import BertConfig, BertModel, BertTokenizer
 
 from biosequences.utils import Phrasifier
 
-VOCAB_FILE = './tests_data/vocabfile_3wordlength.txt'
+VOCAB_FILE = 'tests_data/vocabfile_3wordlength.txt'
 HIDDEN_SIZE = 48
 SEQ_TEST = 'AGGACGAACGCTGGCGGCGTGCTTAACACATGCAAGTCGAACGAGAGGACATGAAAAGCTTGCTTTTTATGAAATCTAGTGGCAAACGGGTGAGTAAC'
 
