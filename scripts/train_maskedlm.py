@@ -3,6 +3,7 @@
 '''
 from pathlib import Path
 import random
+import numpy as np
 
 from biosequences.io import NucleotideSequenceProcessor
 from biosequences.utils import NucleotideVocabCreator, dna_nucleotide_alphabet, Phrasifier
@@ -11,7 +12,7 @@ from biosequences.datacollators import DataCollatorDNAWithMasking
 from transformers import BertForMaskedLM, BertConfig
 from transformers import BertTokenizer
 from transformers import Trainer, TrainingArguments
-from datasets import load_dataset
+from datasets import load_dataset, load_metric
 
 def _sequence_grouper(seqs, chunk_size):
     concat_seq = {k : sum(seqs[k], []) for k in seqs.keys()}
@@ -23,6 +24,12 @@ def _sequence_grouper(seqs, chunk_size):
     }
     result['labels'] = result['input_ids'].copy()
     return result
+
+def _compute_metrics(eval_pred):
+    logits, labels = eval_pred
+    predictions = np.argmax(logits, axis=-1)
+    matches = [x == y for x, y in zip(predictions.flatten(), labels.flatten()) if y > -99]
+    return {'match_percentage' : 100.0 * matches.count(True) / len(matches)}
 
 def fit_bert_maskedlm(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pattern='*.csv', upper_lower='upper',
                       folder_seq_sentence=None, seq_sentence_prefix='',
@@ -119,7 +126,8 @@ def fit_bert_maskedlm(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pa
 
     #
     # Configure the model for masked language modelling. This is appropriate for training the Bert encoder
-    config = BertConfig(**bert_config_kwargs)
+    config = BertConfig(vocab_size=tokenizer.vocab_size,
+                        **bert_config_kwargs)
     model = BertForMaskedLM(config=config)
 
     #
@@ -132,7 +140,9 @@ def fit_bert_maskedlm(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pa
         model=model,
         args=training_args,
         data_collator=data_collator,
-        train_dataset=lm_dataset['train']
+        train_dataset=lm_dataset['train'],
+        eval_dataset=lm_dataset['test'],
+        compute_metrics=_compute_metrics
     )
 
     #
