@@ -1,12 +1,15 @@
-'''Bla bla
+'''Training script in which all steps are performed, from data preparation, tokenizer creation, data collator
+with custom masking and model configuration/loading plus training at the end.
+
+This script can be converted into jupyter notebook if that is desired.
+
+Useful instructions at: https://huggingface.co/course/chapter7/3
+
+Author: Anders Ohrn, July 2022
 
 '''
 from pathlib import Path
 import random
-import numpy as np
-
-import torch
-from torch.nn import CrossEntropyLoss
 
 from biosequences.io import NucleotideSequenceProcessor
 from biosequences.utils import NucleotideVocabCreator, dna_nucleotide_alphabet, Phrasifier
@@ -16,7 +19,6 @@ from transformers import BertForMaskedLM, BertConfig
 from transformers import BertTokenizer
 from transformers import Trainer, TrainingArguments
 from datasets import load_dataset, load_metric
-import evaluate as evaluate_hugging
 
 def _sequence_grouper(seqs, chunk_size):
     concat_seq = {k : sum(seqs[k], []) for k in seqs.keys()}
@@ -30,12 +32,22 @@ def _sequence_grouper(seqs, chunk_size):
     return result
 
 def _compute_metrics(eval_pred):
+    '''Custom metrics for evaluation step are done here.
+
+    Args:
+        eval_pred :
+
+    Returns:
+        custom_metrics (dict): Keys are the name of the custom metric, value the numberic value of said metric
+
+    '''
 #    logits, labels = eval_pred
 #    predictions = np.argmax(logits, axis=-1)
 #    loss_fct = CrossEntropyLoss()
 #    loss = loss_fct(torch.tensor(logits).view(-1, logits.shape[-1]), torch.tensor(labels).view(-1))
 #    perplexity = torch.exp(loss)
 #    return {'perplexity' : float(perplexity)}
+    pass
     return {}
 
 def fit_bert_maskedlm(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pattern='*.csv', upper_lower='upper',
@@ -45,6 +57,7 @@ def fit_bert_maskedlm(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pa
                       chunk_size=1000,
                       masking_probability=0.15,
                       bert_config_kwargs={},
+                      folder_training_input=None,
                       folder_training_output=None,
                       training_kwargs={}):
 
@@ -123,6 +136,7 @@ def fit_bert_maskedlm(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pa
         batched=True,
         fn_kwargs={'chunk_size' : chunk_size}
     )
+    print (lm_dataset)
 
     #
     # Construct the data collator with random masking probability. Note that the standard Huggingsface method
@@ -132,10 +146,15 @@ def fit_bert_maskedlm(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pa
                                                word_length=word_length_vocab)
 
     #
-    # Configure the model for masked language modelling. This is appropriate for training the Bert encoder
-    config = BertConfig(vocab_size=tokenizer.vocab_size,
-                        **bert_config_kwargs)
-    model = BertForMaskedLM(config=config)
+    # Configure the model for masked language modelling. If no model input directory is given,
+    # then configure from scratch. Else, load model, its configuration and parameters, from input folder data.
+    # Note that the loading of input assumes certain file naming, which standard training ensures.
+    if folder_training_input is None:
+        config = BertConfig(vocab_size=tokenizer.vocab_size,
+                            **bert_config_kwargs)
+        model = BertForMaskedLM(config=config)
+    else:
+        model = BertForMaskedLM.from_pretrained(folder_training_output_)
 
     #
     # Set up trainer
@@ -156,6 +175,5 @@ def fit_bert_maskedlm(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pa
     # Now train.
     trainer.train()
     trainer.save_model(output_dir=folder_training_output_)
-    print (trainer)
 
     print ('hellow')
