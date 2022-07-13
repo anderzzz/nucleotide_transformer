@@ -5,6 +5,9 @@ from pathlib import Path
 import random
 import numpy as np
 
+import torch
+from torch.nn import CrossEntropyLoss
+
 from biosequences.io import NucleotideSequenceProcessor
 from biosequences.utils import NucleotideVocabCreator, dna_nucleotide_alphabet, Phrasifier
 from biosequences.datacollators import DataCollatorDNAWithMasking
@@ -13,6 +16,7 @@ from transformers import BertForMaskedLM, BertConfig
 from transformers import BertTokenizer
 from transformers import Trainer, TrainingArguments
 from datasets import load_dataset, load_metric
+import evaluate as evaluate_hugging
 
 def _sequence_grouper(seqs, chunk_size):
     concat_seq = {k : sum(seqs[k], []) for k in seqs.keys()}
@@ -26,10 +30,13 @@ def _sequence_grouper(seqs, chunk_size):
     return result
 
 def _compute_metrics(eval_pred):
-    logits, labels = eval_pred
-    predictions = np.argmax(logits, axis=-1)
-    matches = [x == y for x, y in zip(predictions.flatten(), labels.flatten()) if y > -99]
-    return {'match_percentage' : 100.0 * matches.count(True) / len(matches)}
+#    logits, labels = eval_pred
+#    predictions = np.argmax(logits, axis=-1)
+#    loss_fct = CrossEntropyLoss()
+#    loss = loss_fct(torch.tensor(logits).view(-1, logits.shape[-1]), torch.tensor(labels).view(-1))
+#    perplexity = torch.exp(loss)
+#    return {'perplexity' : float(perplexity)}
+    return {}
 
 def fit_bert_maskedlm(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pattern='*.csv', upper_lower='upper',
                       folder_seq_sentence=None, seq_sentence_prefix='',
@@ -141,7 +148,7 @@ def fit_bert_maskedlm(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pa
         args=training_args,
         data_collator=data_collator,
         train_dataset=lm_dataset['train'],
-        eval_dataset=lm_dataset['test'],
+        eval_dataset=lm_dataset['validate'],
         compute_metrics=_compute_metrics
     )
 

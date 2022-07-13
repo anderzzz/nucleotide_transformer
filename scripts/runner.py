@@ -8,7 +8,7 @@ fit_bert_maskedlm(
     folder_seq_sentence='/Users/andersohrn/Development/DNABert/models/lm_model_tmp/data_tmp',
     word_length_vocab=3,
     chunk_size=64,
-    split_ratio_test=0.50, split_ratio_validate=0.000,
+    split_ratio_test=0.00, split_ratio_validate=0.500,
     masking_probability=0.15,
     folder_training_output='/Users/andersohrn/Development/DNABert/models/lm_model_tmp/',
     bert_config_kwargs={
