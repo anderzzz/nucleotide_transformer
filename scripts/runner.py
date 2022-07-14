@@ -8,7 +8,7 @@ fit_bert_maskedlm(
     folder_seq_sentence='/Users/andersohrn/Development/DNABert/models/lm_model_tmp/data_tmp',
     word_length_vocab=3,
     chunk_size=1024,
-    split_ratio_test=0.95, split_ratio_validate=0.005,
+    split_ratio_test=0.80, split_ratio_validate=0.020,
     masking_probability=0.15,
     folder_training_input='/Users/andersohrn/Development/DNABert/models/lm_model_tmp/',
     folder_training_output='/Users/andersohrn/Development/DNABert/models/lm_model_tmp/',
@@ -16,7 +16,9 @@ fit_bert_maskedlm(
         'max_position_embeddings' : 1024
     },
     training_kwargs={
+        'fp16' : True,
         'per_device_train_batch_size' : 2,
+        'gradient_accumulation_steps' : 4,
         'num_train_epochs' : 2,
         'save_steps' : 30,
         'evaluation_strategy' : 'epoch'

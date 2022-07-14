@@ -10,6 +10,7 @@ Author: Anders Ohrn, July 2022
 '''
 from pathlib import Path
 import random
+import torch
 
 from biosequences.io import NucleotideSequenceProcessor
 from biosequences.utils import NucleotideVocabCreator, dna_nucleotide_alphabet, Phrasifier
@@ -81,6 +82,7 @@ def fit_bert_maskedlm(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pa
         folder_training_output_ = folder_training_output
 
     random.seed(seed)
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     #
     # Construct sequence sentences from sequence data if such folder is given
@@ -155,11 +157,13 @@ def fit_bert_maskedlm(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pa
         model = BertForMaskedLM(config=config)
     else:
         model = BertForMaskedLM.from_pretrained(folder_training_input)
+    model = model.to(device)
 
     #
     # Set up trainer
     training_args = TrainingArguments(
         output_dir=folder_training_output_,
+        seed=seed,
         **training_kwargs
     )
     trainer = Trainer(
