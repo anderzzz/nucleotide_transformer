@@ -6,7 +6,7 @@ setup(
     author='Anders Ohrn',
     author_email='ohrn.anders@gmail.com',
     packages=['biosequences', 'biosequences.datacollators', 'biosequences.io', 'biosequences.utils'],
-    install_requires=['torch', 'pandas', 'transformers', 'datasets'],
+    install_requires=['torch', 'pandas', 'transformers', 'datasets', 'biopython'],
     version='0.1',
     license='MIT',
     description='Transformer method for nucleotide sequence inputs',
