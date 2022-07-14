@@ -154,7 +154,7 @@ def fit_bert_maskedlm(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pa
                             **bert_config_kwargs)
         model = BertForMaskedLM(config=config)
     else:
-        model = BertForMaskedLM.from_pretrained(folder_training_output_)
+        model = BertForMaskedLM.from_pretrained(folder_training_input)
 
     #
     # Set up trainer
