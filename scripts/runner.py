@@ -16,7 +16,7 @@ fit_bert_maskedlm(
         'max_position_embeddings' : 1024
     },
     training_kwargs={
-        'fp16' : True,
+        'fp16' : False,
         'per_device_train_batch_size' : 2,
         'gradient_accumulation_steps' : 4,
         'num_train_epochs' : 2,

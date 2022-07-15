@@ -13,13 +13,15 @@ import random
 import torch
 
 from biosequences.io import NucleotideSequenceProcessor
-from biosequences.utils import NucleotideVocabCreator, dna_nucleotide_alphabet, Phrasifier
+from biosequences.utils import NucleotideVocabCreator, dna_nucleotide_alphabet, Phrasifier, factory_lr_schedules
 from biosequences.datacollators import DataCollatorDNAWithMasking
 
 from transformers import BertForMaskedLM, BertConfig
 from transformers import BertTokenizer
 from transformers import Trainer, TrainingArguments
-from datasets import load_dataset, load_metric
+from datasets import load_dataset
+
+
 
 def _sequence_grouper(seqs, chunk_size):
     concat_seq = {k : sum(seqs[k], []) for k in seqs.keys()}
@@ -60,6 +62,8 @@ def fit_bert_maskedlm(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pa
                       bert_config_kwargs={},
                       folder_training_input=None,
                       folder_training_output=None,
+                      lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0.01,
+                      n_warmup_steps=500,
                       training_kwargs={}):
 
     #
@@ -160,6 +164,19 @@ def fit_bert_maskedlm(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pa
     model = model.to(device)
 
     #
+    # Set up optimizer with learning rate scheduler
+    params_to_update = []
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            params_to_update.append(param)
+
+    optimizer = torch.optim.AdamW(params_to_update,
+                                  lr=lr, betas=betas, eps=eps, weight_decay=weight_decay)
+    lr_scheduler = factory_lr_schedules.create('constant lr after warmup',
+                                               optimizer=optimizer,
+                                               n_warmup_steps=n_warmup_steps)
+
+    #
     # Set up trainer
     training_args = TrainingArguments(
         output_dir=folder_training_output_,
@@ -172,7 +189,8 @@ def fit_bert_maskedlm(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pa
         data_collator=data_collator,
         train_dataset=lm_dataset['train'],
         eval_dataset=lm_dataset['validate'],
-        compute_metrics=_compute_metrics
+        compute_metrics=_compute_metrics,
+        optimizers=(optimizer, lr_scheduler)
     )
 
     #
