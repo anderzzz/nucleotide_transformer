@@ -6,24 +6,28 @@ from itertools import product, chain
 
 @dataclass
 class NucleotideAlphabet:
-    letters: set
-    letters_extended: set
+    letters: list
+    letters_extended: list
     missing: str
 
     def is_standard_letter_(self, x):
         return x in self.letters
 
-dna_nucleotide_alphabet = NucleotideAlphabet(letters={'A','T', 'C', 'G'},
-                                           letters_extended=set(),
+dna_nucleotide_alphabet = NucleotideAlphabet(letters=['A','T', 'C', 'G'],
+                                           letters_extended=[],
                                            missing='N'
                                            )
-rna_nucleotide_alphabet = NucleotideAlphabet(letters={'A','U', 'C', 'G'},
-                                           letters_extended=set(),
+rna_nucleotide_alphabet = NucleotideAlphabet(letters=['A','U', 'C', 'G'],
+                                           letters_extended=[],
                                            missing='N'
                                            )
 
 class NucleotideVocabCreator(object):
-    '''Bla bla
+    '''Generation of DNA vocabulary of set nucleotide residue word length
+
+    The methods are designs such that a tokenizer with identical mappings between word and integer is attained
+    as in the original DNABert implementation. That is not guaranteed, however, so if the vocabulary file is created
+    anew and pre-trained model weights are used, ensure the word-integer mapping is the same.
 
     '''
     def __init__(self, alphabet,
@@ -47,7 +51,13 @@ class NucleotideVocabCreator(object):
         if do_upper_case:
             self.character_set = [token.upper() for token in self.character_set]
 
-        self.special_tokens = [token for token in [unk_token, sep_token, pad_token, cls_token, mask_token] if not token is None]
+        # Note that default order is the same as in original DNABert implementation;
+        # reuse of pretrained model therefore easier
+        self.special_tokens = [
+                               token
+                               for token in [pad_token, unk_token, cls_token, sep_token, mask_token]
+                               if not token is None
+                               ]
 
     def print(self):
         print_str = ''
@@ -56,7 +66,7 @@ class NucleotideVocabCreator(object):
         return print_str
 
     def generate(self, word_length):
-        self.vocab = product(sorted(self.character_set), repeat=word_length)
+        self.vocab = product(self.character_set, repeat=word_length)
         self.vocab = chain(iter(self.special_tokens), self.vocab)
         return self
 
