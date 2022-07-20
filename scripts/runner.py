@@ -26,7 +26,7 @@ fit_bert_maskedlm(
     shuffle=True,
     split_ratio_test=0.90, split_ratio_validate=0.020,
     masking_probability=0.15,
-    folder_training_input='/Users/andersohrn/Development/DNABert/models/lm_model/',
+    folder_training_input='/Users/andersohrn/Development/DNABert/models/3-new-12w-0',
     folder_training_output='/Users/andersohrn/Development/DNABert/models/lm_model_tmp/',
     bert_config_kwargs={
         'max_position_embeddings' : 512

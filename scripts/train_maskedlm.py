@@ -57,7 +57,7 @@ def fit_bert_maskedlm(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pa
                       folder_seq_sentence=None, seq_sentence_prefix='',
                       split_ratio_test=0.05, split_ratio_validate=0.05, shuffle=True, seed=42,
                       vocab_file='vocab.txt', create_vocab=True, word_length_vocab=3, stride=1,
-                      chunk_size=1000,
+                      chunk_size=512,
                       masking_probability=0.15,
                       bert_config_kwargs={},
                       folder_training_input=None,
@@ -135,12 +135,16 @@ def fit_bert_maskedlm(folder_seq_raw=None, seq_raw_format='csv', seq_raw_file_pa
     #
     # Tokenize the data and make compatible with huggingsface collator
     tokenized_dataset = seq_dataset.map(
-        lambda x: tokenizer(x['seq']), batched=True, remove_columns=['seq', 'id', 'name', 'description']
+        lambda x: tokenizer(x['seq']),
+        batched=True,
+        remove_columns=['seq', 'id', 'name', 'description'],
+        load_from_cache_file=False
     )
     lm_dataset = tokenized_dataset.map(
         _sequence_grouper,
         batched=True,
-        fn_kwargs={'chunk_size' : chunk_size}
+        fn_kwargs={'chunk_size' : chunk_size},
+        load_from_cache_file=False
     )
     print (lm_dataset)
 
