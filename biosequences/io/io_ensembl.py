@@ -4,6 +4,7 @@
 import requests
 from pathlib import Path
 from collections import OrderedDict
+import time
 
 from dataclasses import dataclass
 from typing import Dict
@@ -32,8 +33,9 @@ class _Requestor(object):
     '''Bla bla
 
     '''
-    def __init__(self, ensembl_api):
+    def __init__(self, ensembl_api, sleep=0.0):
         self.ensembl_api = ensembl_api
+        self.sleep_time = sleep
         if len(self.ensembl_api.query) == 0:
             self.add_query = False
         else:
@@ -56,9 +58,8 @@ class _Requestor(object):
 
     def retrieve(self, items):
         for url in self.generate_url_(items):
+            time.sleep(self.sleep_time)
             response = requests.get(url)
-            if response.status_code != 200:
-                raise RuntimeError('Error in retrieving URL {}. Status code: {}. Message: {}'.format(url, response.status_code, response.content))
             yield response
 
 class SequenceChunkMaker(object):
@@ -66,12 +67,14 @@ class SequenceChunkMaker(object):
 
     '''
     def __init__(self, save_dir='.',
-                 sequence_file_name='sequences.csv',
-                 exon_intron_file_name='exon_intron_labels.csv',
-                 metadata_file_name='metadata.csv',
+                 sequence_file_name='sequences_0.csv',
+                 exon_intron_file_name='exon_intron_labels_0.csv',
+                 metadata_file_name='metadata_0.csv',
                  transcript_only=True,
                  yield_data=False,
-                 compact_label=False
+                 compact_label=False,
+                 error_handler_fn=None,
+                 request_sleep=5.0
                  ):
 
         self.yield_data = yield_data
@@ -82,6 +85,8 @@ class SequenceChunkMaker(object):
             self._label = {'intron' : 'i', 'exon' : 'e'}
         else:
             self._label = {'intron' : 'intron', 'exon' : None}
+        if error_handler_fn is None:
+            self.error_handler_fn = lambda x, y: None
 
         self.sequence_file_name = sequence_file_name
         self.exon_intron_file_name = exon_intron_file_name
@@ -95,8 +100,8 @@ class SequenceChunkMaker(object):
 
         self.transcript_only = transcript_only
 
-        self.seq_requestor = _Requestor(ensembl_api=ensemble_sequence_id_ret_json)
-        self.seq_lookupor = _Requestor(ensembl_api=ensemble_sequence_lookup_ret_json)
+        self.seq_requestor = _Requestor(ensembl_api=ensemble_sequence_id_ret_json, sleep=request_sleep)
+        self.seq_lookupor = _Requestor(ensembl_api=ensemble_sequence_lookup_ret_json, sleep=request_sleep)
 
     def __call__(self, seq_ids):
         if self.yield_data:
@@ -114,7 +119,8 @@ class SequenceChunkMaker(object):
     def process(self, seq_ids):
         for seq_response, lookup_response in zip(self.seq_requestor.retrieve(seq_ids),
                                                  self.seq_lookupor.retrieve(seq_ids)):
-            if seq_response.status_code != 200:
+            if (seq_response.status_code != 200) or (lookup_response.status_code != 200):
+                self.error_handler_fn(seq_response, lookup_response)
                 continue
 
             seq_data = seq_response.json()
