@@ -9,7 +9,9 @@ def _parse_g3po(fin):
     df = read_csv(filepath_or_buffer=fin, sep=';')
     df = df.loc[df['Quality'] == 'Confirmed']  # High quality selection
     df = df.loc[df['Transcrit_ID'].str.slice(0, 2) == 'EN']  # Only those that are in Ensembl database
-    df = df.iloc[40:60]
+    print (df.shape)
+    df = df.iloc[900:]
+#    df = df.loc[~df['Transcrit_ID'].str.contains('009898')]
     return df['Transcrit_ID'].to_list()
 
 def make_exonintron_db(
@@ -22,9 +24,9 @@ def make_exonintron_db(
     ):
 
     sequence_chunk_maker = SequenceChunkMaker(save_dir=save_dir, yield_data=False, compact_label=compact_label,
-                                              sequence_file_name='sequences_2.csv',
-                                              metadata_file_name='metadata_2.csv',
-                                              exon_intron_file_name='exon_intron_labels_2.csv')
+                                              sequence_file_name='sequences_17.csv',
+                                              metadata_file_name='metadata_17.csv',
+                                              exon_intron_file_name='exon_intron_labels_17.csv')
     if transcript_ids is None:
         if transcript_ids_file is None:
             raise ValueError('One of `transcript_ids` and `transcript_ids_file` has to be other than `None`')

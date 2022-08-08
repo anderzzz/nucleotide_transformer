@@ -59,6 +59,7 @@ class _Requestor(object):
     def retrieve(self, items):
         for url in self.generate_url_(items):
             time.sleep(self.sleep_time)
+            print (url)
             response = requests.get(url)
             yield response
 
@@ -74,7 +75,7 @@ class SequenceChunkMaker(object):
                  yield_data=False,
                  compact_label=False,
                  error_handler_fn=None,
-                 request_sleep=5.0
+                 request_sleep=2.0
                  ):
 
         self.yield_data = yield_data
